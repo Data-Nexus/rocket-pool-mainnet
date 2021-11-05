@@ -4,7 +4,7 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: rocketTokenRETH
-    network: goerli
+    network: mainnet
     source:
       address: "0x178E141a0E3b34152f73Ff610437A7bf9B83267A"
       abi: rocketTokenRETH
@@ -239,7 +239,7 @@ dataSources:
 
   - kind: ethereum/contract
     name: rocketMinipoolManagerV3
-    network: goerli
+    network: mainnet
     source:
       address: "0xB815a94430f08dD2ab61143cE1D5739Ac81D3C6d"
       abi: rocketMinipoolManagerV3
