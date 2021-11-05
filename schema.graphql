@@ -1,0 +1,320 @@
+# Entity that represents the RocketPool protocol and its various child entities. (Will eventually also hold Node related entities)
+type RocketPoolProtocol @entity {
+  # The name of the RocketPOOL protocol.
+  id: ID! 
+
+  # All stakers (addresses holding rETH) associated with the RocketPool protocol.
+  stakers: [Staker!]!
+
+  # Last known staker network balance checkpoint.
+  lastNetworkStakerBalanceCheckPoint: NetworkStakerBalanceCheckpoint
+
+  # All nodes that are registered with the RocketPool protocol.
+  nodes: [Node!]!
+
+  # All timezones associated with registered nodes.
+  nodeTimezones: [NetworkNodeTimezone!]!
+}
+
+# A Staker on RocketPool is an address that is/was associated with an rETH balance.
+type Staker @entity {
+  # Address that holds rETH.
+  id: ID! 
+
+  # Current rETH balance in WEI.
+  rETHBalance: BigInt!
+
+  # Current ETH balance in WEI.
+  ethBalance: BigInt!
+
+  # Total ETH rewards (in WEI) accrued during the lifecycle of the staker. 
+  totalETHRewards: BigInt!
+
+  # Indicates if this staker has accrued ETH rewards at some point in time during its lifetime.
+  hasAccruedETHRewardsDuringLifecycle: Boolean!
+
+  # The last known staker balance checkpoint for this staker.
+  lastBalanceCheckpoint: StakerBalanceCheckpoint
+
+  # Block number at which this staker first received rETH.
+  block: BigInt!
+
+  # Block timestamp at which this staker first received rETH.
+  blockTime: BigInt!
+}
+
+# Entity tracking the mint, burn and transfers of rETH. Minting and burning will occur to/from the rETH contract address.
+type RocketETHTransaction @entity {
+  # Composite key based on transaction hash of the triggered event and its log index.
+  id: ID!
+
+  # The address that was the original owner of the rETH.
+  from: Staker!
+
+  # The rETH amount (in WEI) being transferred.
+  amount: BigInt!
+
+  # The address that was the recipient of the rETH.
+  to: Staker!
+
+  # The block number of this transaction.
+  block: BigInt!
+
+  # The block timestamp of this transaction.
+  blockTime: BigInt!
+
+  # The transaction hash.
+  transactionHash: Bytes!
+}
+
+# Represents a checkpoint at which the RocketPool protocol kept track of all staker related balances.
+type NetworkStakerBalanceCheckpoint @entity {
+  # Composite key based on transaction hash of the triggered event and its log index.
+  id: ID!
+
+  # Staker ETH (in WEI) balance (initial deposit + (ETH network rewards - average node fee)) on the beacon chain at this checkpoint. 
+  stakerETHActivelyStaking: BigInt!
+  
+  # Staker ETH (in WEI) waiting in the deposit pool at this checkpoint.
+  stakerETHWaitingInDepositPool: BigInt!
+ 
+  # Staker ETH (in WEI) in the RocketETH contract at this checkpoint.
+  stakerETHInRocketETHContract: BigInt!
+
+  # Staker ETH (in WEI) in RocketPool at this checkpoint.
+  stakerETHInProtocol: BigInt!
+
+  # Staker ETH rewards (+/-) (in WEI) for all staker balance checkpoints up to this checkpoint.
+  totalStakerETHRewards: BigInt!
+
+  # Stakers that have had ETH rewards (+/-) up to this checkpoint.
+  totalStakersWithETHRewards: BigInt!
+
+  # Average staker ETH rewards (+/-) (in WEI) up to this checkpoint.
+  averageStakerETHRewards: BigInt!
+
+  # Total unique stakers that have an rETH balance (in WEI) greater than 0 at this checkpoint.
+  stakersWithAnRETHBalance: BigInt!
+
+  # Total rETH supply at this checkpoint.
+  totalRETHSupply: BigInt!
+
+  # Exchange rate of ETH:rETH (in WEI) at this checkpoint.
+  rETHExchangeRate: BigInt!
+
+  # Block Number of this checkpoint.
+  block: BigInt!
+
+  # Block Timestamp of this checkpoint.
+  blockTime: BigInt!
+}
+
+# Represents a checkpoint at which the RocketPool protocol kept track of a balance for a specific staker.
+type StakerBalanceCheckpoint @entity {
+  # Composite key consisting of the NetworkBalanceCheckpoint ID and the Staker ID.
+  id: ID!
+
+  # Staker that is associated with this balance checkpoint.
+  stakerId: String!
+
+  # The network staker balance checkpoint that triggered the creation of this reward.
+  networkStakerBalanceCheckpointId: String!
+
+  # ETH balance (in WEI) of the staker of this checkpoint.
+  ethBalance: BigInt!
+
+  # rETH balance (in WEI) of the staker of this checkpoint.
+  rETHBalance: BigInt!
+
+  # Total ETH rewards (in WEI) up to this checkpoint.
+  totalETHRewards: BigInt!
+
+  # Block Number of this checkpoint.
+  block: BigInt!
+
+  # Block Timestamp of this checkpoint.
+  blockTime: BigInt!
+}
+
+# Entity representing a node on RocketPool.
+type Node @entity {
+  # Address that is associated with a node on RocketPool.
+  id: ID! 
+
+  # Current timezone for this node.
+  timezone: NetworkNodeTimezone!
+
+  # Current RPL staked.
+  rplStaked: BigInt!
+
+  # Current effective RPL staked
+  effectiveRPLStaked: BigInt!
+
+  # Total RPL slashed since this node was registered with RocketPool.
+  totalRPLSlashed: BigInt!
+
+  # Total claimed RPL rewards since this node was registered with RocketPool.
+  totalClaimedRPLRewards: BigInt!
+
+  # Current minimum RPL needed to collateralize all the queued and staking minipools of this node by the bare minimum.
+  minimumRPLNeededForMinipools: BigInt!
+
+  # Current maximum RPL needed to collateralize all the queued and staking minipools of this node to the absolute maximum.
+  maximumRPLNeededForMinipools: BigInt!
+
+  # Current queueud minipools
+  queuedMinipools: BigInt!
+
+  # Current staking minipools
+  stakingMinipools: BigInt!
+
+  # Current unbonded staking minipools
+  unbondedStakingMinipools: BigInt!
+
+  # Current withdrawable minipools.
+  withdrawableMinipools: BigInt!
+
+  # Finalized minipools since this node was registered with RocketPool.
+  totalFinalizedMinipools: BigInt!
+
+  # Average minipool fee for this node operator.
+  averageMinipoolFee: BigInt
+ 
+  # Last node balance checkpoint for this node.
+  lastNodeBalanceCheckpoint: NodeBalanceCheckpoint
+
+  # Block number at which this node was first registered with the protocol.
+  block: BigInt!
+
+  # Block timestamp at which this node was first registered with the protocol.
+  blockTime: BigInt!
+}
+
+# Entity representing the network timezones and the associated registered node(s).
+type NetworkNodeTimezone @entity {
+  # Timezone name (string)
+  id: ID!
+
+  # Total number of nodes registered with this timezone.
+  totalRegisteredNodes: BigInt!
+
+  # Block Number - On what block number was this timezone first registered.
+  block: BigInt!
+
+  # Block Timestamp - At what time was this timezone first registered.
+  blockTime: BigInt!
+}
+
+# Entity representing the network balance checkpoint for all nodes.
+type NetworkNodeBalanceCheckpoint @entity {
+  # Composite key based on transaction hash of the triggered event and its log index.
+  id: ID! 
+
+  # Total number of registered RocketPool nodes at this checkpoint.
+  nodesRegistered: BigInt!
+
+  # RPL staked accross all nodes at this checkpoint.
+  rplStaked: BigInt!
+
+  # Effective RPL staked accross all nodes at this checkpoint.
+  effectiveRPLStaked: BigInt!
+
+  # Total RPL slashed from all previous checkpoints up to this checkpoint.
+  totalRPLSlashed: BigInt!
+
+  # Total Claimed RPL rewards from all previous checkpoints up to this checkpoint.
+  totalClaimedRPLRewards: BigInt!
+
+  # Minimum RPL needed to collateralize the entire protocol by the absolute minimum.
+  minimumRPLNeededForMinipools: BigInt!
+
+  # maximum RPL needed to collateralize the entire protocol to the absolute maximum.
+  maximumRPLNeededForMinipools: BigInt!
+
+  # The RPL price in ETH at this checkpoint.
+  rplPriceInETH: BigInt!
+
+  # Current queued minipools accross all nodes at this checkpoint.
+  queuedMinipools: BigInt!
+
+  # Total capacity of the queued minipools accross all nodes at this checkpoint.
+  queuedMinipoolsTotalCapacity: BigInt!
+
+  # Effective capacity of the queued minipools accross all nodes at this checkpoint.
+  queuedMinipoolsEffectiveCapacity: BigInt!
+
+  # Current staking minipools accross all nodes at this checkpoint.
+  stakingMinipools: BigInt!
+
+  # Current unbonded staking minipools accross all nodes at this checkpoint.
+  stakingUnbondedMinipools: BigInt!
+
+  # Withdrawable minipools accross all nodes at this checkpoint.
+  withdrawableMinipools: BigInt!
+
+  # Total finalized minipools accross all nodes up to this checkpoint.
+  totalFinalizedMinipools: BigInt!
+
+  # Average minipool fee accross all nodes at this checkpoint.
+  averageMinipoolFee: BigInt
+
+  # Block number that was associated with this checkpoint.
+  block: BigInt!
+
+  # Block timestamp that was associated with this checkpoint.
+  blockTime: BigInt!
+}
+
+# Entity representing a balance checkpoint for a node.
+type NodeBalanceCheckpoint @entity {
+  # Composite key consisting of the NetworkNodeBalanceCheckpoint ID and the Node ID.
+  id: ID! 
+
+  # Node that is associated with this balance checkpoint.
+  Node: Node! 
+
+  # Network node balance checkpoint associated with this checkpoint.
+  NetworkNodeBalanceCheckpoint: NetworkNodeBalanceCheckpoint!
+
+  # RPL staked at this checkpoint.
+  rplStaked: BigInt!
+
+  # Effective RPL staked at this checkpoint.
+  effectiveRPLStaked: BigInt!
+
+  # Total RPL slashed from all previous checkpoints up to this checkpoint.
+  totalRPLSlashed: BigInt!
+
+  # Total Claimed RPL rewards from all previous checkpoints up to this checkpoint.
+  totalClaimedRPLRewards: BigInt!
+
+  # Minimum RPL needed to collateralize all the queued and staking minipools of the node by the bare minimum at this checkpoint.
+  minimumRPLNeededForMinipools: BigInt!
+
+  # Maximum RPL needed to collateralize all the queued and staking minipools of the node by the absolute maximum at this checkpoint.
+  maximumRPLNeededForMinipools: BigInt!
+
+  # Queued minipools for this node at this checkpoint.
+  queuedMinipools: BigInt!
+
+  # Staking minipools for this node at this checkpoint.
+  stakingMinipools: BigInt!
+
+  # Unbonded staking minipools for this node at this checkpoint.
+  stakingUnbondedMinipools: BigInt!
+
+  # Withdrawable minipools accross for this node at this checkpoint.
+  withdrawableMinipools: BigInt!
+
+  # Total Finalized minipools for this node up to this checkpoint.
+  totalFinalizedMinipools: BigInt!
+
+  # Average minipool fee for this node at this checkpoint.
+  averageMinipoolFee: BigInt
+
+  # Block number that was associated with this checkpoint.
+  block: BigInt!
+
+  # Block timestamp that was associated with this checkpoint.
+  blockTime: BigInt!
+}

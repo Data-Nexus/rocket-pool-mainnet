@@ -1,0 +1,382 @@
+specVersion: 0.0.3
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: rocketTokenRETH
+    network: goerli
+    source:
+      address: "0x178E141a0E3b34152f73Ff610437A7bf9B83267A"
+      abi: rocketTokenRETH
+      startBlock: 5240711
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Staker
+        - RocketETHTransaction
+      abis:
+        - name: rocketTokenRETH
+          file: ./abis/rocketTokenRETH.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/mappings/rocketTokenRETHMapping.ts
+
+  - kind: ethereum/contract
+    name: rocketNetworkBalances
+    network: mainnet
+    source:
+      address: "0x28CEa7b0f3916C1dbA667d3D58EC4836aD843c49"
+      abi: rocketNetworkBalances
+      startBlock: 5240673
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - NetworkStakerBalanceCheckpoint
+        - StakerBalanceCheckpoint
+      abis:
+        - name: rocketNetworkBalances
+          file: ./abis/rocketNetworkBalances.json
+        - name: rocketTokenRETH
+          file: ./abis/rocketTokenRETH.json   
+        - name: rocketDepositPool
+          file: ./abis/rocketDepositPool.json
+      eventHandlers:
+        - event: BalancesUpdated(uint256,uint256,uint256,uint256,uint256)
+          handler: handleBalancesUpdated
+      file: ./src/mappings/rocketNetworkBalancesMapping.ts
+
+  - kind: ethereum/contract
+    name: rocketNodeManagerV1
+    network: mainnet
+    source:
+      address: "0xCd05a20bf753E56Ca69bc6AeF23C9cA056d2149D"
+      abi: rocketNodeManagerV1
+      startBlock: 5240685
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Node
+        - NetworkNodeTimezone
+      abis:
+        - name: rocketNodeManagerV1
+          file: ./abis/rocketNodeManagerV1.json    
+      eventHandlers:
+        - event: NodeRegistered(indexed address,uint256)
+          handler: handleNodeRegister
+        - event: NodeTimezoneLocationSet(indexed address,uint256)
+          handler: handleNodeTimezoneChanged
+      file: ./src/mappings/rocketNodeManager/V1.ts
+
+  - kind: ethereum/contract 
+    name: rocketNodeManagerV2
+    network: mainnet
+    source:
+      address: "0x6555fE651c5139E031aaC33ec61b6DAb686cD1Ad"
+      abi: rocketNodeManagerV2
+      startBlock: 5269508
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Node
+        - NetworkNodeTimezone
+      abis:
+        - name: rocketNodeManagerV2
+          file: ./abis/rocketNodeManagerV2.json    
+      eventHandlers:
+        - event: NodeRegistered(indexed address,uint256)
+          handler: handleNodeRegisterV2
+        - event: NodeTimezoneLocationSet(indexed address,uint256)
+          handler: handleNodeTimezoneChangedV2
+      file: ./src/mappings/rocketNodeManager/V2.ts
+  
+  - kind: ethereum/contract
+    name: rocketNodeStaking
+    network: mainnet
+    source:
+      address: "0xc0367B558fCF45d5E6cAdf55567d4Fb94BF62703"
+      abi: rocketNodeStaking
+      startBlock: 5240685
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - NodeRPLStakeTransaction
+      abis:
+        - name: rocketNodeStaking
+          file: ./abis/rocketNodeStaking.json    
+        - name: rocketNetworkPrices
+          file: ./abis/rocketNetworkPrices.json    
+        - name: rocketTokenRETH
+          file: ./abis/rocketTokenRETH.json
+      eventHandlers:
+        - event: RPLStaked(indexed address,uint256,uint256)
+          handler: handleRPLStaked
+        - event: RPLWithdrawn(indexed address,uint256,uint256)
+          handler: handleRPLWithdrawn
+        - event: RPLSlashed(indexed address,uint256,uint256,uint256)
+          handler: handleRPLSlashed
+      file: ./src/mappings/rocketNodeStakingMapping.ts
+
+  - kind: ethereum/contract
+    name: rocketRewardsPool
+    network: mainnet
+    source:
+      address: "0xf9aE18eB0CE4930Bc3d7d1A5E33e4286d4FB0f8B"
+      abi: rocketRewardsPool
+      startBlock: 5240676
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - RPLRewardInterval
+        - RPLRewardClaim
+      abis:
+        - name: rocketRewardsPool
+          file: ./abis/rocketRewardsPool.json     
+        - name: rocketDAONodeTrusted
+          file: ./abis/rocketDAONodeTrusted.json 
+        - name: rocketNetworkPrices
+          file: ./abis/rocketNetworkPrices.json    
+      eventHandlers:
+        - event: RPLTokensClaimed(indexed address,indexed address,uint256,uint256)
+          handler: handleRPLTokensClaimed
+      file: ./src/mappings/rocketRewardsPoolMapping.ts
+
+  - kind: ethereum/contract
+    name: rocketNetworkPrices
+    network: mainnet
+    source:
+      address: "0x12f96dC173a806D18d71fAFe3C1BA2149c3E3Dc6"
+      abi: rocketNetworkPrices
+      startBlock: 5240675
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - NetworkNodeBalanceCheckpoint
+        - NodeBalanceCheckpoint
+      abis:
+        - name: rocketNetworkPrices
+          file: ./abis/rocketNetworkPrices.json
+        - name: rocketNetworkFees
+          file: ./abis/rocketNetworkFees.json
+        - name: rocketDAOProtocolSettingsNode
+          file: ./abis/rocketDAOProtocolSettingsNode.json
+        - name: rocketDAOProtocolSettingsMinipool
+          file: ./abis/rocketDAOProtocolSettingsMinipool.json  
+        - name: rocketNodeStaking
+          file: ./abis/rocketNodeStaking.json
+      eventHandlers:
+        - event: PricesUpdated(uint256,uint256,uint256,uint256)
+          handler: handlePricesUpdated
+      file: ./src/mappings/rocketNetworkPricesMapping.ts
+
+  - kind: ethereum/contract
+    name: rocketMinipoolManagerV1 
+    network: mainnet
+    source:
+      address: "0x6cC6b7F1eA68548d008d0Ce60798132a4072B919"
+      abi: rocketMinipoolManagerV1
+      startBlock: 5240668
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Minipool
+      abis:
+        - name: rocketMinipoolManagerV1
+          file: ./abis/rocketMinipoolManagerV1.json
+        - name: rocketNetworkFees
+          file: ./abis/rocketNetworkFees.json     
+        - name: rocketNodeStaking
+          file: ./abis/rocketNodeStaking.json   
+      eventHandlers:
+        - event: MinipoolCreated(indexed address,indexed address,uint256)
+          handler: handleMinipoolCreated
+        - event: MinipoolDestroyed(indexed address,indexed address,uint256)
+          handler: handleMinipoolDestroyed
+      file: ./src/mappings/rocketMinipoolManager/V1.ts
+
+  - kind: ethereum/contract
+    name: rocketMinipoolManagerV2
+    network: mainnet
+    source:
+      address: "0x71EADa9cc667d64D30a38Ffb63FA07F3CD2072E3"
+      abi: rocketMinipoolManagerV2
+      startBlock: 5661253
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Minipool
+      abis:
+        - name: rocketMinipoolManagerV2
+          file: ./abis/rocketMinipoolManagerV2.json
+        - name: rocketNetworkFees
+          file: ./abis/rocketNetworkFees.json     
+        - name: rocketNodeStaking
+          file: ./abis/rocketNodeStaking.json   
+      eventHandlers:
+        - event: MinipoolCreated(indexed address,indexed address,uint256)
+          handler: handleMinipoolCreatedV2
+        - event: MinipoolDestroyed(indexed address,indexed address,uint256)
+          handler: handleMinipoolDestroyedV2
+      file: ./src/mappings/rocketMinipoolManager/V2.ts
+
+  - kind: ethereum/contract
+    name: rocketMinipoolManagerV3
+    network: goerli
+    source:
+      address: "0xB815a94430f08dD2ab61143cE1D5739Ac81D3C6d"
+      abi: rocketMinipoolManagerV3
+      startBlock: 5742248 
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Minipool
+      abis:
+        - name: rocketMinipoolManagerV3
+          file: ./abis/rocketMinipoolManagerV3.json
+        - name: rocketNetworkFees
+          file: ./abis/rocketNetworkFees.json     
+        - name: rocketNodeStaking
+          file: ./abis/rocketNodeStaking.json   
+      eventHandlers:
+        - event: MinipoolCreated(indexed address,indexed address,uint256)
+          handler: handleMinipoolCreatedV3
+        - event: MinipoolDestroyed(indexed address,indexed address,uint256)
+          handler: handleMinipoolDestroyedV3
+      file: ./src/mappings/rocketMinipoolManager/V3.ts
+ 
+  - kind: ethereum/contract
+    name: rocketMinipoolqueue 
+    network: mainnet
+    source:
+      address: "0xEF5EF45bf1CC08D5694f87F8c4023f00CCCB7237"
+      abi: rocketMinipoolqueue
+      startBlock: 5240668
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Minipool
+      abis:
+        - name: rocketMinipoolqueue
+          file: ./abis/rocketMinipoolqueue.json
+      eventHandlers:
+        - event: MinipoolEnqueued(indexed address,indexed bytes32,uint256)
+          handler: handleMinipoolEnqueued
+        - event: MinipoolDequeued(indexed address,indexed bytes32,uint256)
+          handler: handleMinipoolDequeued
+      file: ./src/mappings/rocketMinipoolQueueMapping.ts
+
+  - kind: ethereum/contract
+    name: rocketDAONodeTrustedActions 
+    network: mainnet
+    source:
+      address: "0x47B27F14888E17Cb3B7D065FA0Af41863666d717"
+      abi: rocketDAONodeTrustedActions
+      startBlock: 5240691
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Node
+      abis:
+        - name: rocketDAONodeTrustedActions
+          file: ./abis/rocketDAONodeTrustedActions.json
+      eventHandlers:
+        - event: ActionJoined(indexed address,uint256,uint256)
+          handler: handleOracleNodeJoined
+        - event: ActionLeave(indexed address,uint256,uint256)
+          handler: handleOracleNodeLeft
+        - event: ActionKick(indexed address,uint256,uint256)
+          handler: handleOracleNodeKicked
+        - event: ActionChallengeDecided(indexed address,indexed address,bool,uint256)
+          handler: handleChallengeDecided
+      file: ./src/mappings/rocketDAONodeTrustedActionMapping.ts
+
+templates:
+  - name: rocketMinipoolDelegateV1
+    kind: ethereum/contract
+    network: mainnet
+    source:
+      abi: rocketMinipoolDelegateV1
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/mappings/rocketMinipoolDelegate/V1.ts
+      entities:
+        - Minipool
+        - Node
+      abis:
+        - name: rocketMinipoolDelegateV1  
+          file: ./abis/rocketMinipoolDelegateV1.json 
+      eventHandlers:
+        - event: StatusUpdated(indexed uint8,uint256)
+          handler: handleStatusUpdated
+        - event: EtherDeposited(indexed address,uint256,uint256)
+          handler: handleEtherDeposited
+
+  - name: rocketMinipoolDelegateV2
+    kind: ethereum/contract
+    network: mainnet
+    source:
+      abi: rocketMinipoolDelegateV2
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/mappings/rocketMinipoolDelegate/V2.ts
+      entities:
+        - Minipool
+        - Node
+      abis:
+        - name: rocketMinipoolDelegateV2  
+          file: ./abis/rocketMinipoolDelegateV2.json 
+      eventHandlers:
+        - event: StatusUpdated(indexed uint8,uint256)
+          handler: handleStatusUpdated
+        - event: EtherDeposited(indexed address,uint256,uint256)
+          handler: handleEtherDeposited
+
+  - name: rocketMinipoolDelegateV3
+    kind: ethereum/contract
+    network: mainnet
+    source:
+      abi: rocketMinipoolDelegateV3
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      file: ./src/mappings/rocketMinipoolDelegate/V3.ts
+      entities:
+        - Minipool
+        - Node
+      abis:
+        - name: rocketMinipoolDelegateV3 
+          file: ./abis/rocketMinipoolDelegateV3.json 
+      eventHandlers:
+        - event: StatusUpdated(indexed uint8,uint256)
+          handler: handleStatusUpdated
+        - event: EtherDeposited(indexed address,uint256,uint256)
+          handler: handleEtherDeposited
