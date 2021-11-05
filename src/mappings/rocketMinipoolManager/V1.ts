@@ -68,7 +68,7 @@ export function handleMinipoolCreated(event: MinipoolCreated): void {
   node.save()
 
   // Get the appropriate delegate template for this block and use it to create another instance of the entity.
-  if (event.block.number < BigInt.fromI32(5696004)) {  
+  if (event.block.number < BigInt.fromI32(13535384)) {  
     rocketMinipoolDelegateV1.create(Address.fromString(minipool.id));
   } else {
     rocketMinipoolDelegateV2.create(Address.fromString(minipool.id));

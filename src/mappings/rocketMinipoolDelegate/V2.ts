@@ -8,7 +8,7 @@ import {
   MINIPOOLSTATUS_STAKING,
   MINIPOOLSTATUS_WITHDRAWABLE,
 } from '../../constants/enumconstants'
-import { ROCKET_NODE_DEPOSIT_CONTRACT_ADDRESS } from '../../constants/contractconstants'
+import { ROCKET_NODE_DEPOSIT_CONTRACT_ADDRESS_V1, ROCKET_NODE_DEPOSIT_CONTRACT_ADDRESS_V2 } from '../../constants/contractconstants'
 
 /**
  * Occurs when a node operator makes an ETH deposit on his node to create a minipool.
@@ -53,13 +53,11 @@ export function handleEtherDeposited(event: EtherDeposited): void {
   let minipool = Minipool.load(event.address.toHexString())
   if (minipool === null) return
 
-  // Get the address of the rocket node deposit contract.
-  let rocketNodeDepositContractAddress = Address.fromString(
-    ROCKET_NODE_DEPOSIT_CONTRACT_ADDRESS,
-  )
   // Check if the deposit came from a node.
   if (
-    rocketNodeDepositContractAddress.toHexString() ==
+    ROCKET_NODE_DEPOSIT_CONTRACT_ADDRESS_V1 ==
+    event.params.from.toHexString() || 
+    ROCKET_NODE_DEPOSIT_CONTRACT_ADDRESS_V2==
     event.params.from.toHexString()
   ) {
     // The deposit came from a node and is a 'node' deposit.
