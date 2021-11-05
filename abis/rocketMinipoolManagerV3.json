@@ -1,0 +1,605 @@
+[
+    {
+        "inputs": [
+            {
+                "internalType": "contract RocketStorageInterface",
+                "name": "_rocketStorageAddress",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor",
+        "signature": "constructor"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "minipool",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "node",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "time",
+                "type": "uint256"
+            }
+        ],
+        "name": "MinipoolCreated",
+        "type": "event",
+        "signature": "0x08b4b91bafaf992145c5dd7e098dfcdb32f879714c154c651c2758a44c7aeae4"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "minipool",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "node",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "time",
+                "type": "uint256"
+            }
+        ],
+        "name": "MinipoolDestroyed",
+        "type": "event",
+        "signature": "0x3097cb0f536cd88115b814915d7030d2fe958943357cd2b1a9e1dba8a673ec69"
+    },
+    {
+        "inputs": [],
+        "name": "version",
+        "outputs": [
+            {
+                "internalType": "uint8",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0x54fd4d50"
+    },
+    {
+        "inputs": [],
+        "name": "getMinipoolCount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0xae4d0bed"
+    },
+    {
+        "inputs": [],
+        "name": "getStakingMinipoolCount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0x67bca235"
+    },
+    {
+        "inputs": [],
+        "name": "getFinalisedMinipoolCount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0xd1ea6ce0"
+    },
+    {
+        "inputs": [],
+        "name": "getActiveMinipoolCount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0xce9b79ad"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "offset",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "limit",
+                "type": "uint256"
+            }
+        ],
+        "name": "getMinipoolCountPerStatus",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "initialisedCount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "prelaunchCount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "stakingCount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "withdrawableCount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "dissolvedCount",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0x3b5ecefa"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "offset",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "limit",
+                "type": "uint256"
+            }
+        ],
+        "name": "getPrelaunchMinipools",
+        "outputs": [
+            {
+                "internalType": "address[]",
+                "name": "",
+                "type": "address[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0x5dfef965"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_index",
+                "type": "uint256"
+            }
+        ],
+        "name": "getMinipoolAt",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0xeff7319f"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_nodeAddress",
+                "type": "address"
+            }
+        ],
+        "name": "getNodeMinipoolCount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0x1ce9ec33"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_nodeAddress",
+                "type": "address"
+            }
+        ],
+        "name": "getNodeActiveMinipoolCount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0x1844ec01"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_nodeAddress",
+                "type": "address"
+            }
+        ],
+        "name": "getNodeFinalisedMinipoolCount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0xb88a89f7"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_nodeAddress",
+                "type": "address"
+            }
+        ],
+        "name": "getNodeStakingMinipoolCount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0x57b4ef6b"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_nodeAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_index",
+                "type": "uint256"
+            }
+        ],
+        "name": "getNodeMinipoolAt",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0x8b300029"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_nodeAddress",
+                "type": "address"
+            }
+        ],
+        "name": "getNodeValidatingMinipoolCount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0xf90267c4"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_nodeAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_index",
+                "type": "uint256"
+            }
+        ],
+        "name": "getNodeValidatingMinipoolAt",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0x9da0700f"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes",
+                "name": "_pubkey",
+                "type": "bytes"
+            }
+        ],
+        "name": "getMinipoolByPubkey",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0xcf6a4763"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_minipoolAddress",
+                "type": "address"
+            }
+        ],
+        "name": "getMinipoolExists",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0x606bb62e"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_minipoolAddress",
+                "type": "address"
+            }
+        ],
+        "name": "getMinipoolDestroyed",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0xa757987a"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_minipoolAddress",
+                "type": "address"
+            }
+        ],
+        "name": "getMinipoolPubkey",
+        "outputs": [
+            {
+                "internalType": "bytes",
+                "name": "",
+                "type": "bytes"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function",
+        "constant": true,
+        "signature": "0x3eb535e9"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_minipoolAddress",
+                "type": "address"
+            }
+        ],
+        "name": "getMinipoolWithdrawalCredentials",
+        "outputs": [
+            {
+                "internalType": "bytes",
+                "name": "",
+                "type": "bytes"
+            }
+        ],
+        "stateMutability": "pure",
+        "type": "function",
+        "constant": true,
+        "signature": "0x2cb76c37"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_nodeAddress",
+                "type": "address"
+            }
+        ],
+        "name": "incrementNodeStakingMinipoolCount",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function",
+        "signature": "0x9907288c"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_nodeAddress",
+                "type": "address"
+            }
+        ],
+        "name": "decrementNodeStakingMinipoolCount",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function",
+        "signature": "0x75b59c7f"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_nodeAddress",
+                "type": "address"
+            }
+        ],
+        "name": "incrementNodeFinalisedMinipoolCount",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function",
+        "signature": "0xb04e8868"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_nodeAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "enum MinipoolDeposit",
+                "name": "_depositType",
+                "type": "uint8"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_salt",
+                "type": "uint256"
+            }
+        ],
+        "name": "createMinipool",
+        "outputs": [
+            {
+                "internalType": "contract RocketMinipoolInterface",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function",
+        "signature": "0x518e703c"
+    },
+    {
+        "inputs": [],
+        "name": "destroyMinipool",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function",
+        "signature": "0x7bb40aaf"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes",
+                "name": "_pubkey",
+                "type": "bytes"
+            }
+        ],
+        "name": "setMinipoolPubkey",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function",
+        "signature": "0x2c7f64d4"
+    },
+    {
+        "inputs": [],
+        "name": "getMinipoolBytecode",
+        "outputs": [
+            {
+                "internalType": "bytes",
+                "name": "",
+                "type": "bytes"
+            }
+        ],
+        "stateMutability": "pure",
+        "type": "function",
+        "constant": true,
+        "signature": "0xf85b6943"
+    }
+]

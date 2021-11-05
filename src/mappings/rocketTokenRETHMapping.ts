@@ -1,8 +1,6 @@
-import { ROCKET_STORAGE_ADDRESS, ROCKET_TOKEN_RETH_CONTRACT_NAME } from '../constants/contractconstants'
 import { Address, BigInt, Bytes } from '@graphprotocol/graph-ts'
 import { Transfer } from '../../generated/rocketTokenRETH/rocketTokenRETH'
 import { rocketTokenRETH } from '../../generated/rocketTokenRETH/rocketTokenRETH'
-import { rocketStorage } from '../../generated/rocketTokenRETH/rocketStorage'
 import { Staker } from '../../generated/schema'
 import { generalUtilities } from '../utilities/generalutilities'
 import { stakerUtilities } from '../utilities/stakerUtilities'
@@ -87,11 +85,7 @@ function saveTransaction(
   }
 
   // Load the RocketTokenRETH contract.
-  let rocketStorageContract = rocketStorage.bind(ROCKET_STORAGE_ADDRESS)
-  let rETHContractAddress = rocketStorageContract.getAddress(
-    generalUtilities.getRocketVaultContractAddressKey(ROCKET_TOKEN_RETH_CONTRACT_NAME)
-  )
-  let rETHContract = rocketTokenRETH.bind(rETHContractAddress)
+  let rETHContract = rocketTokenRETH.bind(event.address)
   if (rETHContract === null) return
 
   // Update active balances for stakesr.
@@ -99,11 +93,19 @@ function saveTransaction(
   stakerUtilities.changeStakerBalances(from, rETHAmount, exchangeRate, false)
   stakerUtilities.changeStakerBalances(to, rETHAmount, exchangeRate, true)
 
-  // Save all indirectly affected entities of the protocol
+  // Save all indirectly affected entities of the protocol - All stakers
   let protocolStakers = protocol.stakers
   if (protocolStakers.indexOf(from.id) == -1) protocolStakers.push(from.id)
   if (protocolStakers.indexOf(to.id) == -1) protocolStakers.push(to.id)
   protocol.stakers = protocolStakers
+
+  // Save all indirectly affected entities of the protocol - Active stakers.
+  let protocolActiveStakers = protocol.activeStakers
+  if (from.rETHBalance > BigInt.fromI32(0) && protocolActiveStakers.indexOf(from.id) == -1) protocolActiveStakers.push(from.id)
+  else if (from.rETHBalance == BigInt.fromI32(0) && protocolActiveStakers.indexOf(from.id) != -1) protocolActiveStakers.splice(protocolActiveStakers.indexOf(from.id), 1);
+  if (to.rETHBalance > BigInt.fromI32(0) && protocolActiveStakers.indexOf(to.id) == -1) protocolActiveStakers.push(to.id)
+  else if (to.rETHBalance == BigInt.fromI32(0) && protocolActiveStakers.indexOf(to.id) != -1) protocolActiveStakers.splice(protocolActiveStakers.indexOf(to.id), 1);
+  protocol.activeStakers = protocolActiveStakers
 
   // Index all state.
   from.save()

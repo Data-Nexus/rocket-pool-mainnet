@@ -1,21 +1,65 @@
-import { ethereum, BigInt } from "@graphprotocol/graph-ts";
-import { NetworkNodeBalanceCheckpoint, Node } from "../../generated/schema";
+import { ethereum, BigInt, bigDecimal, BigDecimal } from "@graphprotocol/graph-ts";
+import {
+  NetworkNodeBalanceCheckpoint,
+  Node,
+  RocketPoolProtocol
+} from "../../generated/schema";
 import { generalUtilities } from "./generalUtilities";
 import { NetworkNodeBalanceMinipoolMetadata } from "../models/networkNodeBalanceMinipoolMetadata";
 import { ONE_ETHER_IN_WEI } from "../constants/generalconstants";
+import { NetworkNodeBalanceRPLMetadata } from "../models/networkNodeBalanceRPLMetadata";
 
 class NodeUtilities {
   /**
    * Checks if there is already an indexed network node balance checkpoint for the given event.
    */
   public hasNetworkNodeBalanceCheckpointHasBeenIndexed(
+    protocol: RocketPoolProtocol,
     event: ethereum.Event
   ): boolean {
-    // Is this transaction already logged?
-    return (
+    // If this specific event has been handled, then return true.
+    if (
       NetworkNodeBalanceCheckpoint.load(
         generalUtilities.extractIdForEntity(event)
       ) !== null
+    )
+      return true;
+
+    // No indexed protocol means there is no latest network node balance checkpoint.
+    if (protocol === null) return false;
+
+    /*
+    Retrieve the latest network balance checkpoint.
+    If there is none at the moment, return false because this hasnt been handled yet.
+  */
+    let latestNetworkNodeBalanceCheckpointId =
+      protocol.lastNetworkNodeBalanceCheckPoint;
+    if (latestNetworkNodeBalanceCheckpointId === null) return false;
+    const latestNetworkNodeBalanceCheckpoint = NetworkNodeBalanceCheckpoint.load(
+      latestNetworkNodeBalanceCheckpointId
+    );
+    if (
+      latestNetworkNodeBalanceCheckpoint === null ||
+      latestNetworkNodeBalanceCheckpoint.blockTime == BigInt.fromI32(0)
+    )
+      return false;
+
+    // Get the date of the network node balance event candidate and the latest network node balance checkpoint.
+    let dateOfNewNetworkNodeBalanceCheckpoint = new Date(
+      event.block.timestamp.toI32() * 1000
+    );
+    let dateOfLatestNetworkNodeBalanceCheckpoint = new Date(
+      latestNetworkNodeBalanceCheckpoint.blockTime.toI32() * 1000
+    );
+
+    // If the latest network node balance checkpoint and the candidate match in terms of day/month/year, then return false.
+    return (
+      dateOfNewNetworkNodeBalanceCheckpoint.getUTCFullYear() ==
+        dateOfLatestNetworkNodeBalanceCheckpoint.getUTCFullYear() &&
+      dateOfNewNetworkNodeBalanceCheckpoint.getUTCMonth() ==
+        dateOfLatestNetworkNodeBalanceCheckpoint.getUTCMonth() &&
+      dateOfNewNetworkNodeBalanceCheckpoint.getUTCDate() ==
+        dateOfLatestNetworkNodeBalanceCheckpoint.getUTCDate()
     );
   }
 
@@ -66,6 +110,13 @@ class NodeUtilities {
       BigInt.fromI32(1)
     );
 
+    // Update total number of oracle nodes registered if needed.
+    if (node.isOracleNode) {
+      networkCheckpoint.oracleNodesRegistered = networkCheckpoint.oracleNodesRegistered.plus(
+        BigInt.fromI32(1)
+      );
+    }
+
     // Update total (effective) RPL staked.
     networkCheckpoint.rplStaked = networkCheckpoint.rplStaked.plus(
       node.rplStaked
@@ -80,8 +131,11 @@ class NodeUtilities {
     );
 
     // Update total RPL rewards claimed up to this checkpoint.
-    networkCheckpoint.totalClaimedRPLRewards = networkCheckpoint.totalClaimedRPLRewards.plus(
-      node.totalClaimedRPLRewards
+    networkCheckpoint.totalODAORewardsClaimed = networkCheckpoint.totalODAORewardsClaimed.plus(
+      node.totalODAORewardsClaimed
+    );
+    networkCheckpoint.totalNodeRewardsClaimed = networkCheckpoint.totalNodeRewardsClaimed.plus(
+      node.totalNodeRewardsClaimed
     );
 
     // Update total number of minipools per state.
@@ -111,8 +165,8 @@ class NodeUtilities {
   ): void {
     // We need this to calculate the averages on the network level.
     if (node.averageFeeForActiveMinipools > BigInt.fromI32(0)) {
-      minipoolMetadata.totalAverageFeeInETHForAllActiveMinipools = minipoolMetadata.totalAverageFeeInETHForAllActiveMinipools.plus(
-        node.averageFeeForActiveMinipools.div(ONE_ETHER_IN_WEI)
+      minipoolMetadata.totalAverageFeeForAllActiveMinipools = minipoolMetadata.totalAverageFeeForAllActiveMinipools.plus(
+        node.averageFeeForActiveMinipools.divDecimal(BigDecimal.fromString(ONE_ETHER_IN_WEI.toString()))
       );
       minipoolMetadata.totalNodesWithActiveMinipools = minipoolMetadata.totalNodesWithActiveMinipools.plus(
         BigInt.fromI32(1)
@@ -120,10 +174,45 @@ class NodeUtilities {
     }
 
     // Update thte total minimum/maximum effective RPL grand total for the current network node balance checkpoint.
-    minipoolMetadata.totalMinimumEffectiveRPL =
-      minipoolMetadata.totalMinimumEffectiveRPL.plus(node.minimumEffectiveRPL);
-    minipoolMetadata.totalMaximumEffectiveRPL =
-      minipoolMetadata.totalMaximumEffectiveRPL.plus(node.maximumEffectiveRPL);
+    minipoolMetadata.totalMinimumEffectiveRPL = minipoolMetadata.totalMinimumEffectiveRPL.plus(
+      node.minimumEffectiveRPL
+    );
+    minipoolMetadata.totalMaximumEffectiveRPL = minipoolMetadata.totalMaximumEffectiveRPL.plus(
+      node.maximumEffectiveRPL
+    );
+  }
+
+  /**
+   * Updates the metadata with the relevant state from the node.
+   */
+  public updateRPLMetadataWithNode(
+    rplMetadata: NetworkNodeBalanceRPLMetadata,
+    node: Node
+  ): void {
+    // We need these to calculate the averages on the network level.
+    if (node.totalODAORewardsClaimed > BigInt.fromI32(0)) {
+      rplMetadata.totalNodesWithAnODAORewardClaim = rplMetadata.totalNodesWithAnODAORewardClaim.plus(
+        BigInt.fromI32(1)
+      );
+    }
+
+    if (node.odaoRewardClaimCount > BigInt.fromI32(0)) {
+      rplMetadata.totalODAORewardClaimCount = rplMetadata.totalODAORewardClaimCount.plus(
+        node.odaoRewardClaimCount
+      );
+    }
+
+    if (node.totalNodeRewardsClaimed > BigInt.fromI32(0)) {
+      rplMetadata.totalNodesWithRewardClaim = rplMetadata.totalNodesWithRewardClaim.plus(
+        BigInt.fromI32(1)
+      );
+    }
+
+    if (node.nodeRewardClaimCount > BigInt.fromI32(0)) {
+      rplMetadata.totalNodeRewardClaimCount = rplMetadata.totalNodeRewardClaimCount.plus(
+        node.nodeRewardClaimCount
+      );
+    }
   }
 
   /**
@@ -137,18 +226,61 @@ class NodeUtilities {
     // Calculate the network fee average for active minipools if possible.
     if (
       minipoolMetadata.totalNodesWithActiveMinipools > BigInt.fromI32(0) &&
-      minipoolMetadata.totalAverageFeeInETHForAllActiveMinipools >
-      BigInt.fromI32(0)
+      minipoolMetadata.totalAverageFeeForAllActiveMinipools > BigDecimal.fromString('0')
     ) {
       // Store this in WEI.
-      checkpoint.averageFeeForActiveMinipools = minipoolMetadata.totalAverageFeeInETHForAllActiveMinipools
-        .div(minipoolMetadata.totalNodesWithActiveMinipools)
-        .times(ONE_ETHER_IN_WEI);
+      checkpoint.averageFeeForActiveMinipools = BigInt.fromString(minipoolMetadata.totalAverageFeeForAllActiveMinipools
+        .div(BigDecimal.fromString(minipoolMetadata.totalNodesWithActiveMinipools.toString()))
+        .times(BigDecimal.fromString(ONE_ETHER_IN_WEI.toString())).truncate(0).toString());
     }
 
     // Calculate total RPL needed to min/max collateralize the staking minipools at this checkpoint.
     checkpoint.minimumEffectiveRPL = minipoolMetadata.totalMinimumEffectiveRPL;
     checkpoint.maximumEffectiveRPL = minipoolMetadata.totalMaximumEffectiveRPL;
+  }
+
+  /**
+   * Updates the network node balance checkpoint based on the given rpl metadata.
+   * E.G. Calculate the average RPL reward claims
+   */
+  public updateNetworkNodeBalanceCheckpointForRPLMetadata(
+    checkpoint: NetworkNodeBalanceCheckpoint,
+    rplMetadata: NetworkNodeBalanceRPLMetadata
+  ): void {
+    // Calculate the network RPL claim averages if possible.
+    if (
+      rplMetadata.totalNodesWithAnODAORewardClaim > BigInt.fromI32(0) &&
+      checkpoint.totalODAORewardsClaimed > BigInt.fromI32(0)
+    ) {
+      // Store this in WEI.
+      checkpoint.averageTotalODAORewardsClaimed = checkpoint.totalODAORewardsClaimed.div(
+        rplMetadata.totalNodesWithAnODAORewardClaim
+      );
+    }
+
+    if (
+      rplMetadata.totalODAORewardClaimCount > BigInt.fromI32(0) &&
+      checkpoint.totalODAORewardsClaimed > BigInt.fromI32(0)
+    ) {
+      checkpoint.averageODAORewardClaim = checkpoint.totalODAORewardsClaimed.div(rplMetadata.totalODAORewardClaimCount)
+    }
+
+    if (
+      rplMetadata.totalNodesWithRewardClaim > BigInt.fromI32(0) &&
+      checkpoint.totalNodeRewardsClaimed > BigInt.fromI32(0)
+    ) {
+      // Store this in WEI.
+      checkpoint.averageNodeTotalRewardsClaimed = checkpoint.totalNodeRewardsClaimed.div(
+        rplMetadata.totalNodesWithRewardClaim
+      );
+    }
+
+    if (
+      rplMetadata.totalNodeRewardClaimCount > BigInt.fromI32(0) &&
+      checkpoint.totalNodeRewardsClaimed > BigInt.fromI32(0)
+    ) {
+      checkpoint.averageNodeRewardClaim = checkpoint.totalNodeRewardsClaimed.div(rplMetadata.totalNodeRewardClaimCount)
+    }
   }
 
   /**
@@ -160,13 +292,53 @@ class NodeUtilities {
   ): void {
     if (previousCheckpoint === null) return;
 
-    // If for some reason our total claimed RPL rewards up to this checkpoint was 0, then we try to set it based on the previous checkpoint.
+    // If for some reason our total claimed RPL rewards (per type) up to this checkpoint was 0, then we try to set it based on the previous checkpoint.
     if (
-      checkpoint.totalClaimedRPLRewards == BigInt.fromI32(0) &&
-      previousCheckpoint.totalClaimedRPLRewards > BigInt.fromI32(0)
+      checkpoint.totalODAORewardsClaimed == BigInt.fromI32(0) &&
+      previousCheckpoint.totalODAORewardsClaimed > BigInt.fromI32(0)
     ) {
-      checkpoint.totalClaimedRPLRewards =
-        previousCheckpoint.totalClaimedRPLRewards;
+      checkpoint.totalODAORewardsClaimed =
+        previousCheckpoint.totalODAORewardsClaimed;
+    }
+
+    if (
+      checkpoint.totalNodeRewardsClaimed == BigInt.fromI32(0) &&
+      previousCheckpoint.totalNodeRewardsClaimed > BigInt.fromI32(0)
+    ) {
+      checkpoint.totalNodeRewardsClaimed =
+        previousCheckpoint.totalNodeRewardsClaimed;
+    }
+
+    if (
+      checkpoint.averageODAORewardClaim == BigInt.fromI32(0) &&
+      previousCheckpoint.averageODAORewardClaim > BigInt.fromI32(0)
+    ) {
+      checkpoint.averageODAORewardClaim =
+        previousCheckpoint.averageODAORewardClaim;
+    }
+
+    if (
+      checkpoint.averageTotalODAORewardsClaimed == BigInt.fromI32(0) &&
+      previousCheckpoint.averageTotalODAORewardsClaimed > BigInt.fromI32(0)
+    ) {
+      checkpoint.averageTotalODAORewardsClaimed =
+        previousCheckpoint.averageTotalODAORewardsClaimed;
+    }
+
+    if (
+      checkpoint.averageNodeRewardClaim == BigInt.fromI32(0) &&
+      previousCheckpoint.averageNodeRewardClaim > BigInt.fromI32(0)
+    ) {
+      checkpoint.averageNodeRewardClaim =
+        previousCheckpoint.averageNodeRewardClaim;
+    }
+
+    if (
+      checkpoint.averageNodeTotalRewardsClaimed == BigInt.fromI32(0) &&
+      previousCheckpoint.averageNodeTotalRewardsClaimed > BigInt.fromI32(0)
+    ) {
+      checkpoint.averageNodeTotalRewardsClaimed =
+        previousCheckpoint.averageNodeTotalRewardsClaimed;
     }
 
     // If for some reason our total slashed RPL rewards up to this checkpoint was 0, then we try to set it based on the previous checkpoint.

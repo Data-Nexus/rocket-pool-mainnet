@@ -6,12 +6,10 @@ import {
 } from '../../generated/rocketNodeStaking/rocketNodeStaking'
 import { rocketNetworkPrices } from '../../generated/rocketNodeStaking/rocketNetworkPrices'
 import { rocketNodeStaking } from '../../generated/rocketNodeStaking/rocketNodeStaking'
-import { rocketStorage } from '../../generated/rocketNodeStaking/rocketStorage'
 import { ONE_ETHER_IN_WEI } from './../constants/generalconstants'
 import {
-  ROCKET_STORAGE_ADDRESS,
-  ROCKET_NODE_STAKING_CONTRACT_NAME,
-  ROCKET_NETWORK_PRICES_CONTRACT_NAME
+  ROCKET_NODE_STAKING_CONTRACT_ADDRESS,
+  ROCKET_NETWORK_PRICES_CONTRACT_ADDRESS
 } from './../constants/contractconstants'
 import {
   NODERPLSTAKETRANSACTIONTYPE_STAKED,
@@ -89,11 +87,7 @@ function saveNodeRPLStakeTransaction(
   if (node === null) return
 
   // Load the storage contract because we need to get the rETH contract address. (and some of its state)
-  let rocketStorageContract = rocketStorage.bind(ROCKET_STORAGE_ADDRESS)
-  let rocketNetworkPricesContractAddress = rocketStorageContract.getAddress(
-    generalUtilities.getRocketVaultContractAddressKey(ROCKET_NETWORK_PRICES_CONTRACT_NAME)
-  )
-  let rocketNetworkPricesContract = rocketNetworkPrices.bind(rocketNetworkPricesContractAddress)
+  let rocketNetworkPricesContract = rocketNetworkPrices.bind(Address.fromString(ROCKET_NETWORK_PRICES_CONTRACT_ADDRESS))
 
   // Calculate the ETH amount at the time of the transaction.
   let rplETHExchangeRate = rocketNetworkPricesContract.getRPLPrice()
@@ -115,8 +109,7 @@ function saveNodeRPLStakeTransaction(
   updateNodeRPLBalances(
     <Node>node,
     amount,
-    transactionType,
-    rocketStorageContract,
+    transactionType
   )
 
   // Index
@@ -130,15 +123,11 @@ function saveNodeRPLStakeTransaction(
 function updateNodeRPLBalances(
   node: Node,
   amount: BigInt,
-  transactionType: string,
-  rocketStorageContract: rocketStorage,
+  transactionType: string
 ): void {
   // We will need the rocket node staking contract to get some latest state for the associated node.
-  let rocketNodeStakingContractAddress = rocketStorageContract.getAddress(
-    generalUtilities.getRocketVaultContractAddressKey(ROCKET_NODE_STAKING_CONTRACT_NAME)
-  )
   let rocketNodeStakingContract = rocketNodeStaking.bind(
-    rocketNodeStakingContractAddress,
+    Address.fromString(ROCKET_NODE_STAKING_CONTRACT_ADDRESS),
   )
 
   let nodeAddress = Address.fromString(node.id);

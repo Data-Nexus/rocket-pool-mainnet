@@ -1,9 +1,15 @@
-# Entity that represents the RocketPool protocol and its various child entities. (Will eventually also hold Node related entities)
+# Entity that represents the RocketPool protocol.
 type RocketPoolProtocol @entity {
-  # The name of the RocketPOOL protocol.
+  # The name of the RocketPool protocol.
   id: ID! 
 
-  # All stakers (addresses holding rETH) associated with the RocketPool protocol.
+  # All stakers that have had ETH rewards while staking with RocketPool.
+  stakersWithETHRewards: [Staker!]!
+
+  # All stakers that currently have an rETH balance greater than 0.
+  activeStakers: [Staker!]!
+
+  # All stakers that have ever held rETH.
   stakers: [Staker!]!
 
   # Last known staker network balance checkpoint.
@@ -14,9 +20,18 @@ type RocketPoolProtocol @entity {
 
   # All timezones associated with registered nodes.
   nodeTimezones: [NetworkNodeTimezone!]!
+
+  # Last known RPL reward interval.
+  lastRPLRewardInterval: RPLRewardInterval
+
+  # Last known node network balance checkpoint.
+  lastNetworkNodeBalanceCheckPoint: NetworkNodeBalanceCheckpoint
+
+  # All node network balance checkpoints for the RocketPool protocol.
+  networkNodeBalanceCheckpoints: [NetworkNodeBalanceCheckpoint!]!
 }
 
-# A Staker on RocketPool is an address that is/was associated with an rETH balance.
+# An address that is/was associated with an rETH balance.
 type Staker @entity {
   # Address that holds rETH.
   id: ID! 
@@ -43,7 +58,7 @@ type Staker @entity {
   blockTime: BigInt!
 }
 
-# Entity tracking the mint, burn and transfers of rETH. Minting and burning will occur to/from the rETH contract address.
+# Tracks the mint, burn and transfers of rETH. 
 type RocketETHTransaction @entity {
   # Composite key based on transaction hash of the triggered event and its log index.
   id: ID!
@@ -67,10 +82,16 @@ type RocketETHTransaction @entity {
   transactionHash: Bytes!
 }
 
-# Represents a checkpoint at which the RocketPool protocol kept track of all staker related balances.
+# Summarizes staker related balances at a specific block and timestamp.
 type NetworkStakerBalanceCheckpoint @entity {
   # Composite key based on transaction hash of the triggered event and its log index.
   id: ID!
+
+  # Id to the the previous checkpoint.
+  previousCheckpointId: String
+
+  # Id to the the next checkpoint.
+  nextCheckpointId: String
 
   # Staker ETH (in WEI) balance (initial deposit + (ETH network rewards - average node fee)) on the beacon chain at this checkpoint. 
   stakerETHActivelyStaking: BigInt!
@@ -109,7 +130,7 @@ type NetworkStakerBalanceCheckpoint @entity {
   blockTime: BigInt!
 }
 
-# Represents a checkpoint at which the RocketPool protocol kept track of a balance for a specific staker.
+# Summarizes balances for a staker at a specific block and timestamp.
 type StakerBalanceCheckpoint @entity {
   # Composite key consisting of the NetworkBalanceCheckpoint ID and the Staker ID.
   id: ID!
@@ -136,13 +157,22 @@ type StakerBalanceCheckpoint @entity {
   blockTime: BigInt!
 }
 
-# Entity representing a node on RocketPool.
+# A node address that was registered by a node operator.
 type Node @entity {
   # Address that is associated with a node on RocketPool.
   id: ID! 
 
   # Current timezone for this node.
   timezone: NetworkNodeTimezone!
+
+  # Indicator that determines if a node is currently an oracle node or not.
+  isOracleNode: Boolean!
+
+  # If this node is currently an oracle node, signifies the RPL bond of the ODAO node.
+  oracleNodeRPLBond: BigInt
+
+  # Identifies the block time of the last ODAO state change for this node.
+  oracleNodeBlockTime: BigInt
 
   # Current RPL staked.
   rplStaked: BigInt!
@@ -153,14 +183,29 @@ type Node @entity {
   # Total RPL slashed since this node was registered with RocketPool.
   totalRPLSlashed: BigInt!
 
-  # Total claimed RPL rewards since this node was registered with RocketPool.
-  totalClaimedRPLRewards: BigInt!
+  # Total claim amount accrued via the ODAO reward claim contract.
+  totalODAORewardsClaimed: BigInt!
 
-  # Current minimum RPL needed to collateralize all the queued and staking minipools of this node by the bare minimum.
-  minimumRPLNeededForMinipools: BigInt!
+  # Total claim amount accrued via the regular reward claim contract.
+  totalNodeRewardsClaimed: BigInt!
 
-  # Current maximum RPL needed to collateralize all the queued and staking minipools of this node to the absolute maximum.
-  maximumRPLNeededForMinipools: BigInt!
+  # Average reward claim this node has done via the ODAO reward claim contract.
+  averageODAORewardClaim: BigInt!
+
+  # Average reward claim this node has done via the regular reward claim contract.
+  averageNodeRewardClaim: BigInt!
+
+  # Total amount of successfull RPL claims a node has done via the ODAO reward claim contract.
+  odaoRewardClaimCount: BigInt!
+
+  # Total amount of successfull RPL claims a node has done via the regular node reward claim contract.
+  nodeRewardClaimCount: BigInt!
+
+  # Current minimum RPL needed to collateralize all staking minipools of this node by the bare minimum.
+  minimumEffectiveRPL: BigInt!
+
+  # Current maximum RPL needed to collateralize all staking minipools of this node to the absolute maximum.
+  maximumEffectiveRPL: BigInt!
 
   # Current queueud minipools
   queuedMinipools: BigInt!
@@ -169,7 +214,7 @@ type Node @entity {
   stakingMinipools: BigInt!
 
   # Current unbonded staking minipools
-  unbondedStakingMinipools: BigInt!
+  stakingUnbondedMinipools: BigInt!
 
   # Current withdrawable minipools.
   withdrawableMinipools: BigInt!
@@ -177,11 +222,14 @@ type Node @entity {
   # Finalized minipools since this node was registered with RocketPool.
   totalFinalizedMinipools: BigInt!
 
-  # Average minipool fee for this node operator.
-  averageMinipoolFee: BigInt
+  # Average minipool fee for the active (NOT finalized or destroyed) minipools for this node operator.
+  averageFeeForActiveMinipools: BigInt!
  
   # Last node balance checkpoint for this node.
   lastNodeBalanceCheckpoint: NodeBalanceCheckpoint
+
+  # Associated minipools for this node.
+  minipools: [Minipool!]!
 
   # Block number at which this node was first registered with the protocol.
   block: BigInt!
@@ -190,28 +238,180 @@ type Node @entity {
   blockTime: BigInt!
 }
 
-# Entity representing the network timezones and the associated registered node(s).
-type NetworkNodeTimezone @entity {
-  # Timezone name (string)
+# The type of RPL Stake transactions.
+enum NodeRPLStakeTransactionType {
+  Staked
+  Withdrawal
+  Slashed
+}
+
+# Keeps track of the RPL staking transactions for a node.
+type NodeRPLStakeTransaction @entity {
+  # Composite key based on transaction hash of the triggered event and its log index.
   id: ID!
 
   # Total number of nodes registered with this timezone.
-  totalRegisteredNodes: BigInt!
+  node: Node!
 
-  # Block Number - On what block number was this timezone first registered.
+  # The total RPL amount that concerns this transaction.
+  amount: BigInt!
+  
+  # The total ETH equivalent at the time of this transaction.
+  ethAmount: BigInt!
+
+  # The type of RPL stake transaction.
+  type: NodeRPLStakeTransactionType!
+
+  # On what block number did this transaction occur.
   block: BigInt!
 
-  # Block Timestamp - At what time was this timezone first registered.
+  # At what time did this transaction occur.
   blockTime: BigInt!
 }
 
-# Entity representing the network balance checkpoint for all nodes.
+# Represents an reward interval during which RPL can be claimed by different types of claimers.
+type RPLRewardInterval @entity {
+  # Composite key based on transaction hash of the triggered event and its log index.
+  id: ID!
+
+  # ID to the previous.
+  previousIntervalId: String
+
+  # ID to the next interval.
+  nextIntervalId: String
+
+  # The total RPL rewards that are claimable for this interval.
+  claimableRewards: BigInt!
+
+  # The total RPL rewards from the previous interval that rolled over into this interval.
+  claimableRewardsFromPreviousInterval: BigInt!
+
+  # The total RPL rewards that are claimable for this interval via the PDAO reward claim contract.
+  claimablePDAORewards: BigInt!
+
+  # The total RPL rewards that are claimable for this interval via the ODAO reward claim contract.
+  claimableODAORewards: BigInt!
+
+  # The total RPL rewards that are claimable for this interval via the regula node reward claim contract.
+  claimableNodeRewards: BigInt!
+
+  # The total RPL rewards claimed during this interval.
+  totalRPLClaimed: BigInt!
+
+  # The total RPL rewards that have been claimed during this interval for the PDAO reward claim contract.
+  totalPDAORewardsClaimed: BigInt!
+
+  # The total RPL rewards that have been claimed during this interval for the ODAO reward claim contract.
+  totalODAORewardsClaimed: BigInt!
+
+  # The total RPL rewards that have been claimed during this interval for the regular node reward claim contract.
+  totalNodeRewardsClaimed: BigInt!
+
+  # Average RPL claim for the ODAO reward claim contract during this interval.
+  averageODAORewardClaim: BigInt!
+
+  # Average RPL claim for the regular node reward claim contract during this interval.
+  averageNodeRewardClaim: BigInt!
+
+  # The total number of claims done for the ODAO reward claim contract during this interval.
+  odaoRewardClaimCount:  BigInt!
+
+  # The total number of claims done for the regular node reward claim contract during this interval.
+  nodeRewardClaimCount:  BigInt!
+
+  # The total RPL rewards that were given out in this interval.
+  rplRewardClaims: [RPLRewardClaim!]!
+
+  # Indicates if this interval is still active.
+  isClosed: Boolean!
+
+  # Indicates when this interval started.
+  intervalStartTime: BigInt!
+
+  # Indicates when this interval ended.
+  intervalClosedTime: BigInt
+
+  # Indicates how long the interval was supposed to last.
+  intervalDuration: BigInt!
+
+  # Indicates how long the interval actually lasted.
+  intervalDurationActual: BigInt
+
+  # On what block number was this interval created.
+  block: BigInt!
+
+  # At what time was this interval created.
+  blockTime: BigInt!
+}
+
+# Represents the RPL reward claimer options.
+enum RPLRewardClaimerType {
+  PDAO
+  ODAO
+  Node
+}
+
+# Represents an RPL reward that has been claimed by an address.
+type RPLRewardClaim @entity {
+  # Composite key based on transaction hash of the triggered event and its log index.
+  id: ID!
+
+  # Id of the associated RPL reward interval parent.
+  rplRewardIntervalId: String!
+
+  # The claiming address.
+  claimer: String!
+
+  # The type of the claimer.
+  claimerType: RPLRewardClaimerType!
+
+  # The total RPL amount of this claim.
+  amount: BigInt!
+  
+  # The total ETH equivalent (in WEI) at the time of this reward.
+  ethAmount: BigInt!
+
+  # The transaction hash associated with this claim.
+  transactionHash: String!
+
+  # The block number associated with this claim.
+  block: BigInt!
+
+  # The block timestamp associated with this claim.
+  blockTime: BigInt!
+}
+
+# Represents the network timezones and the registered node(s).
+type NetworkNodeTimezone @entity {
+  # Timezone name.
+  id: ID!
+
+  # Total nodes registered with this timezone.
+  totalRegisteredNodes: BigInt!
+
+  # Block Number on which this timezone was created.
+  block: BigInt!
+
+  # Block Timestamp on which this timezone was created.
+  blockTime: BigInt!
+}
+
+# Represents a network balance checkpoint for all nodes.
 type NetworkNodeBalanceCheckpoint @entity {
   # Composite key based on transaction hash of the triggered event and its log index.
   id: ID! 
 
+  # Id to the the previous checkpoint.
+  previousCheckpointId: String
+
+  # Id to the the next checkpoint.
+  nextCheckpointId: String
+
   # Total number of registered RocketPool nodes at this checkpoint.
   nodesRegistered: BigInt!
+
+  # Total number of oracle nodes registrered with RocketPool at this checkpoint.
+  oracleNodesRegistered: BigInt!
 
   # RPL staked accross all nodes at this checkpoint.
   rplStaked: BigInt!
@@ -219,29 +419,47 @@ type NetworkNodeBalanceCheckpoint @entity {
   # Effective RPL staked accross all nodes at this checkpoint.
   effectiveRPLStaked: BigInt!
 
+  # Minimum RPL needed to collateralize the staking minipools by the absolute minimum at this checkpoint.
+  minimumEffectiveRPL: BigInt!
+
+  # maximum RPL needed to collateralize the staking minipools to the absolute maximum at this checkpoint.
+  maximumEffectiveRPL: BigInt!
+
+  # Minimum RPL needed to start a new minipool at this checkpoint.
+  minimumEffectiveRPLNewMinipool: BigInt!
+
+  # Maximum RPL needed to start a new minipool at this checkpoint.
+  maximumEffectiveRPLNewMinipool: BigInt!
+
   # Total RPL slashed from all previous checkpoints up to this checkpoint.
   totalRPLSlashed: BigInt!
 
-  # Total Claimed RPL rewards from all previous checkpoints up to this checkpoint.
-  totalClaimedRPLRewards: BigInt!
+  # Total accrued rewards via the ODAO reward claim contract from all previous checkpoints up to this checkpoint.
+  totalODAORewardsClaimed: BigInt!
 
-  # Minimum RPL needed to collateralize the entire protocol by the absolute minimum.
-  minimumRPLNeededForMinipools: BigInt!
+  # Total accrued rewards via the regular node reward claim contract from all previous checkpoints up to this checkpoint.
+  totalNodeRewardsClaimed: BigInt!
 
-  # maximum RPL needed to collateralize the entire protocol to the absolute maximum.
-  maximumRPLNeededForMinipools: BigInt!
+  # Average total accrued rewards via the ODAO reward claim contract from all previous checkpoints up to this checkpoint.
+  averageTotalODAORewardsClaimed: BigInt!
+
+  # Average reward per claim via the ODAO reward claim contract from all previous checkpoints up to this checkpoint.
+  averageODAORewardClaim: BigInt!
+
+   # Average total accrued rewards via the regular node reward claim contract from all previous checkpoints up to this checkpoint.
+  averageNodeTotalRewardsClaimed: BigInt!
+
+  # Average reward per claim via the regular node reward claim contract from all previous checkpoints up to this checkpoint.
+  averageNodeRewardClaim: BigInt!
 
   # The RPL price in ETH at this checkpoint.
   rplPriceInETH: BigInt!
 
+  # The average RPL price in ETH up to this checkpoint.
+  averageRplPriceInETH: BigInt!
+
   # Current queued minipools accross all nodes at this checkpoint.
   queuedMinipools: BigInt!
-
-  # Total capacity of the queued minipools accross all nodes at this checkpoint.
-  queuedMinipoolsTotalCapacity: BigInt!
-
-  # Effective capacity of the queued minipools accross all nodes at this checkpoint.
-  queuedMinipoolsEffectiveCapacity: BigInt!
 
   # Current staking minipools accross all nodes at this checkpoint.
   stakingMinipools: BigInt!
@@ -255,8 +473,11 @@ type NetworkNodeBalanceCheckpoint @entity {
   # Total finalized minipools accross all nodes up to this checkpoint.
   totalFinalizedMinipools: BigInt!
 
-  # Average minipool fee accross all nodes at this checkpoint.
-  averageMinipoolFee: BigInt
+  # Average minipool fee accross all nodes and the active (NOT finalized or destroyed) minipools at this checkpoint.
+  averageFeeForActiveMinipools: BigInt!
+
+  # Fee to start a new minipool at this checkpoint.
+  newMinipoolFee: BigInt!
 
   # Block number that was associated with this checkpoint.
   block: BigInt!
@@ -265,16 +486,25 @@ type NetworkNodeBalanceCheckpoint @entity {
   blockTime: BigInt!
 }
 
-# Entity representing a balance checkpoint for a node.
+# Represents a balance checkpoint for a node.
 type NodeBalanceCheckpoint @entity {
   # Composite key consisting of the NetworkNodeBalanceCheckpoint ID and the Node ID.
   id: ID! 
 
-  # Node that is associated with this balance checkpoint.
+  # Node that is associated with this checkpoint.
   Node: Node! 
 
   # Network node balance checkpoint associated with this checkpoint.
   NetworkNodeBalanceCheckpoint: NetworkNodeBalanceCheckpoint!
+
+  # Indicator that determines if a node is an oracle node or not at this checkpoint.
+  isOracleNode: Boolean!
+
+  # If this node is an oracle node at this checkpoint, signifies the RPL bond of the ODAO node.
+  oracleNodeRPLBond: BigInt
+
+  # Identifies the block time of the last ODAO state change for this node at this checkpoint.
+  oracleNodeBlockTime: BigInt
 
   # RPL staked at this checkpoint.
   rplStaked: BigInt!
@@ -282,17 +512,32 @@ type NodeBalanceCheckpoint @entity {
   # Effective RPL staked at this checkpoint.
   effectiveRPLStaked: BigInt!
 
-  # Total RPL slashed from all previous checkpoints up to this checkpoint.
+  # Minimum RPL needed to collateralize the staking minipools by the bare minimum at this checkpoint.
+  minimumEffectiveRPL: BigInt!
+
+  # Maximum RPL needed to collateralize the staking minipools by the absolute maximum at this checkpoint.
+  maximumEffectiveRPL: BigInt!
+
+  # Total RPL slashed up to this checkpoint.
   totalRPLSlashed: BigInt!
 
-  # Total Claimed RPL rewards from all previous checkpoints up to this checkpoint.
-  totalClaimedRPLRewards: BigInt!
+  # Total accrued rewards via the ODAO reward claim contract up to this checkpoint.
+  totalODAORewardsClaimed: BigInt!
 
-  # Minimum RPL needed to collateralize all the queued and staking minipools of the node by the bare minimum at this checkpoint.
-  minimumRPLNeededForMinipools: BigInt!
+  # Total accrued claimed rewards via the regular node reward claim contract up to this checkpoint.
+  totalNodeRewardsClaimed: BigInt!
 
-  # Maximum RPL needed to collateralize all the queued and staking minipools of the node by the absolute maximum at this checkpoint.
-  maximumRPLNeededForMinipools: BigInt!
+  # Average rewards accrued via the ODAO reward claim contract for this node up to this checkpoint.
+  averageODAORewardClaim: BigInt!
+
+  # Average rewards accrued via the regular node reward claim contract for this node up to this checkpoint.
+  averageNodeRewardClaim: BigInt!
+
+  # Total successfull claims a node has done via the ODAO reward claim contract up to this checkpoint.
+  odaoRewardClaimCount: BigInt!
+
+  # Total successfull claims a node has done via the regular node reward claim contract up to this checkpoint.
+  nodeRewardClaimCount: BigInt!
 
   # Queued minipools for this node at this checkpoint.
   queuedMinipools: BigInt!
@@ -309,12 +554,54 @@ type NodeBalanceCheckpoint @entity {
   # Total Finalized minipools for this node up to this checkpoint.
   totalFinalizedMinipools: BigInt!
 
-  # Average minipool fee for this node at this checkpoint.
-  averageMinipoolFee: BigInt
+  # Average minipool fee for this node and the active (NOT finalized or destroyed) minipools at this checkpoint.
+  averageFeeForActiveMinipools: BigInt!
 
   # Block number that was associated with this checkpoint.
   block: BigInt!
 
   # Block timestamp that was associated with this checkpoint.
   blockTime: BigInt!
+}
+
+# Represents a minipool for a node.
+type Minipool @entity {
+  # Address of the minipool.
+  id: ID! 
+
+  # Node that is associated with this minipool.
+  node: Node!
+
+  # Fee that was assigned to this minipool when it was created.
+  fee: BigInt! 
+
+  # Node deposit ETH amount (in WEI) that was assigned to this minipool when it was created.
+  nodeDepositETHAmount: BigInt! 
+
+  # Block timestamp at which this minipool received a node deposit.
+  nodeDepositBlockTime: BigInt! 
+
+  # User deposit ETH amount (in WEI) that was assigned to this minipool.
+  userDepositETHAmount: BigInt! 
+
+  # Block timestamp at which this minipool received a user deposit.
+  userDepositBlockTime: BigInt! 
+
+  # Block timestamp at which this minipool was queued.
+  queuedBlockTime: BigInt!
+
+  # Block timestamp at which this minipool was dequeued.
+  dequeuedBlockTime: BigInt!
+
+  # Block timestamp at which this minipool was destroyed.
+  destroyedBlockTime: BigInt!
+
+  # Block number at which this minipool transitioned to the staking state.
+  stakingBlockTime: BigInt!
+
+  # Block timestamp at which this minipool was marked as withdrawable.
+  withdrawableBlockTime: BigInt!
+
+  # Block timestamp at which this minipool was marked as finalized.
+  finalizedBlockTime: BigInt!
 }
