@@ -240,33 +240,6 @@ class StakerUtilities {
         ethRewardsSincePreviousCheckpoint = activeETHBalance
           .minus(ethReceivedSinceThePreviousCheckpointAtPreviousExchangeRate)
           .minus(previousETHBalance)
-
-        /*
-          Depending on the exchange rate differences for the previous and current checkpoint..
-           - We might have lost value on the newly minted rETH amount. (if previous exchange rate > the current exchange rate)
-           - We might have gained value on the newly minted rETH amount. (if previous exchange rate > the current exchange rate)
-          We need to take this increase/decrease into account.
-        */
-        let ethReceivedSinceThePreviousCheckpointAtCurrentExchangeRate = activeRETHBalance
-          .minus(previousRETHBalance)
-          .times(currentCheckpointExchangeRate)
-          .div(ONE_ETHER_IN_WEI)
-        if (
-          ethReceivedSinceThePreviousCheckpointAtCurrentExchangeRate >
-          ethReceivedSinceThePreviousCheckpointAtPreviousExchangeRate
-        ) {
-          ethRewardsSincePreviousCheckpoint = ethRewardsSincePreviousCheckpoint.plus(
-            ethReceivedSinceThePreviousCheckpointAtCurrentExchangeRate.minus(
-              ethReceivedSinceThePreviousCheckpointAtPreviousExchangeRate,
-            ),
-          )
-        } else {
-          ethRewardsSincePreviousCheckpoint = ethRewardsSincePreviousCheckpoint.minus(
-            ethReceivedSinceThePreviousCheckpointAtPreviousExchangeRate.minus(
-              ethReceivedSinceThePreviousCheckpointAtCurrentExchangeRate,
-            ),
-          )
-        }
       }
     }
 
