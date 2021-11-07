@@ -1,12 +1,12 @@
 import { BigInt, Address } from '@graphprotocol/graph-ts'
-import { generalUtilities } from '../../utilities/generalutilities'
-import { rocketPoolEntityFactory } from '../../entityfactory'
-import { Node, NetworkNodeTimezone } from '../../../generated/schema'
+import { generalUtilities } from '../utilities/generalutilities'
+import { rocketPoolEntityFactory } from '../entityfactory'
+import { Node, NetworkNodeTimezone } from '../../generated/schema'
 import {
-  rocketNodeManagerV1,
+  rocketNodeManager,
   NodeRegistered,
   NodeTimezoneLocationSet,
-} from '../../../generated/rocketNodeManagerV1/rocketNodeManagerV1'
+} from '../../generated/rocketNodeManager/rocketNodeManager'
 
 /**
  * Occurs when a node operator registers his address with the RocketPool protocol.
@@ -122,7 +122,7 @@ function getNodeTimezoneId(
   nodeAddress: string,
   nodeManagerContractAddress: Address,
 ): string {
-  let rocketNodeManagerContract = rocketNodeManagerV1.bind(
+  let rocketNodeManagerContract = rocketNodeManager.bind(
     nodeManagerContractAddress,
   )
   let nodeTimezoneStringId = rocketNodeManagerContract.getNodeTimezoneLocation(

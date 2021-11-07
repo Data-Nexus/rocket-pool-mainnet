@@ -265,6 +265,7 @@ dataSources:
           handler: handleChallengeDecided
       file: ./src/mappings/rocketDAONodeTrustedActionMapping.ts
 
+templates:   
   - name: rocketMinipoolDelegateV1
     kind: ethereum/contract
     network: mainnet
