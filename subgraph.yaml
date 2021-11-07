@@ -150,8 +150,10 @@ dataSources:
           file: ./abis/rocketNetworkFees.json
         - name: rocketDAOProtocolSettingsNode
           file: ./abis/rocketDAOProtocolSettingsNode.json
-        - name: rocketDAOProtocolSettingsMinipool
-          file: ./abis/rocketDAOProtocolSettingsMinipool.json  
+        - name: rocketDAOProtocolSettingsMinipoolV1
+          file: ./abis/rocketDAOProtocolSettingsMinipoolV1.json  
+        - name: rocketDAOProtocolSettingsMinipoolV2
+          file: ./abis/rocketDAOProtocolSettingsMinipoolV2.json  
         - name: rocketNodeStaking
           file: ./abis/rocketNodeStaking.json
       eventHandlers:
@@ -300,7 +302,7 @@ dataSources:
         - Node
       abis:
         - name: rocketMinipoolDelegateV2
-          file: ./abis/rocketMinipoolDelegate.json 
+          file: ./abis/rocketMinipoolDelegateV2.json 
       eventHandlers:
         - event: StatusUpdated(indexed uint8,uint256)
           handler: handleStatusUpdated

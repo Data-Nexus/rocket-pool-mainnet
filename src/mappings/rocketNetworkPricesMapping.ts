@@ -1,6 +1,7 @@
 import { PricesUpdated } from '../../generated/rocketNetworkPrices/rocketNetworkPrices'
 import { rocketNetworkFees } from '../../generated/rocketNetworkPrices/rocketNetworkFees'
-import { rocketDAOProtocolSettingsMinipool } from '../../generated/rocketNetworkPrices/rocketDAOProtocolSettingsMinipool'
+import { rocketDAOProtocolSettingsMinipoolV1 } from '../../generated/rocketNetworkPrices/rocketDAOProtocolSettingsMinipoolV1'
+import { rocketDAOProtocolSettingsMinipoolV2 } from '../../generated/rocketNetworkPrices/rocketDAOProtocolSettingsMinipoolV2'
 import { rocketDAOProtocolSettingsNode } from '../../generated/rocketNetworkPrices/rocketDAOProtocolSettingsNode'
 import { rocketNodeStaking } from '../../generated/rocketNetworkPrices/rocketNodeStaking'
 import {
@@ -12,7 +13,8 @@ import { generalUtilities } from '../utilities/generalUtilities'
 import { rocketPoolEntityFactory } from '../entityfactory'
 import { NetworkNodeBalanceMetadata } from '../models/networkNodeBalanceMetadata'
 import {
-  ROCKET_DAO_PROTOCOL_SETTINGS_MINIPOOL_CONTRACT_ADDRESS,
+  ROCKET_DAO_PROTOCOL_SETTINGS_MINIPOOL_CONTRACT_ADDRESS_V1,
+  ROCKET_DAO_PROTOCOL_SETTINGS_MINIPOOL_CONTRACT_ADDRESS_V2,
   ROCKET_DAO_PROTOCOL_SETTINGS_NODE_CONTRACT_ADDRESS,
   ROCKET_NETWORK_FEES_CONTRACT_ADDRESS,
   ROCKET_NODE_STAKING_CONTRACT_ADDRESS,
@@ -47,6 +49,7 @@ export function handlePricesUpdated(event: PricesUpdated): void {
 
   // Determine the RPL minimum and maximum for a new minipool.
   let effectiveRPLBoundsNewMinipool = getEffectiveMinipoolRPLBounds(
+    event.block.number,
     event.params.rplPrice,
   )
 
@@ -269,22 +272,32 @@ function setAverageRplEthRatio(
  * Returns the minimum and maximum RPL needed to collateralize a new minipool based on the current smart contract state.
  */
 function getEffectiveMinipoolRPLBounds(
+  blockNumber: BigInt,
   rplPrice: BigInt,
 ): EffectiveMinipoolRPLBounds {
   let effectiveRPLBounds = new EffectiveMinipoolRPLBounds()
 
-  // Get the DAO Protocol settings minipool contract instance.
-  let rocketDAOProtocolSettingsMinipoolContract = rocketDAOProtocolSettingsMinipool.bind(
-    Address.fromString(ROCKET_DAO_PROTOCOL_SETTINGS_MINIPOOL_CONTRACT_ADDRESS),
-  )
+  let halfDepositAmount = BigInt.fromI32(0);
+
+  // Get the half deposit amount from the DAO Protocol settings minipool contract instance.
+  if (blockNumber < BigInt.fromI32(13555066)) {
+    let rocketDAOProtocolSettingsMinipoolContract = rocketDAOProtocolSettingsMinipoolV1.bind(
+      Address.fromString(ROCKET_DAO_PROTOCOL_SETTINGS_MINIPOOL_CONTRACT_ADDRESS_V1),
+    )
+
+    halfDepositAmount = rocketDAOProtocolSettingsMinipoolContract.getHalfDepositNodeAmount()
+  } else {
+    let rocketDAOProtocolSettingsMinipoolContract = rocketDAOProtocolSettingsMinipoolV2.bind(
+      Address.fromString(ROCKET_DAO_PROTOCOL_SETTINGS_MINIPOOL_CONTRACT_ADDRESS_V2),
+    )
+
+    halfDepositAmount = rocketDAOProtocolSettingsMinipoolContract.getHalfDepositNodeAmount()
+  }
 
   // Get the DAO Protocol settings node contract instance.
   let rocketDAOProtocolSettingsNodeContract = rocketDAOProtocolSettingsNode.bind(
     Address.fromString(ROCKET_DAO_PROTOCOL_SETTINGS_NODE_CONTRACT_ADDRESS),
   )
-
-  // What is the current deposit amount a node operator has to deposit to start a minipool?
-  let halfDepositAmount = rocketDAOProtocolSettingsMinipoolContract.getHalfDepositNodeAmount()
 
   // Determine the minimum and maximum RPL a minipool needs to be collateralized.
   effectiveRPLBounds.minimum = nodeUtilities.getMinimumRPLForNewMinipool(
