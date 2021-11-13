@@ -7,6 +7,8 @@ This subgraph is not officially owned by the Rocket Pool team (yet). This is a c
 
 **[Rocket Pool Subgraph](https://thegraph.com/hosted-service/subgraph/data-nexus/rocket-pool-goerli)**
 
+**Creating an api key for queries**
+https://www.youtube.com/watch?v=UrfIpm-Vlgs
 
 ## **Example Queries 🖥️**
 
