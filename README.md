@@ -13,14 +13,14 @@ This subgraph is not officially owned by the Rocket Pool team (yet). This is a c
 Pull the rETH Staker Information for an individual address:
 
 query StakerOverview {
-  staker(id: "0x...") {
-    rETHBalance
-    totalETHRewards
-    ethBalance
-    id
-  }
+staker(id: "0x...") {
+  rETHBalance
+  totalETHRewards
+  ethBalance
+  id}
 }
 
+NOTE: id's should be be all lowercase 
 
 Pull the daily eth rewards for a staker:
 
