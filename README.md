@@ -12,6 +12,12 @@ https://www.youtube.com/watch?v=UrfIpm-Vlgs
 
 ## **Example Queries 🖥️**
 
+**Graphiql Query Builder:**
+https://graphiql-online.com/
+
+**Temporary Query URL - This is rate limited for testing purposes:**
+https://api.studio.thegraph.com/query/533/rocket-pool/v0.0.3
+
 ### Pull the rETH Staker Information for an individual address:
 NOTE: id's should be be all lowercase 
 
