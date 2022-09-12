@@ -1,7 +1,7 @@
 # Entity that represents the RocketPool protocol.
 type RocketPoolProtocol @entity {
   # The name of the RocketPool protocol.
-  id: ID! 
+  id: ID!
 
   # All stakers that have had ETH rewards while staking with RocketPool.
   stakersWithETHRewards: [Staker!]!
@@ -34,7 +34,7 @@ type RocketPoolProtocol @entity {
 # An address that is/was associated with an rETH balance.
 type Staker @entity {
   # Address that holds rETH.
-  id: ID! 
+  id: ID!
 
   # Current rETH balance in WEI.
   rETHBalance: BigInt!
@@ -42,7 +42,7 @@ type Staker @entity {
   # Current ETH balance in WEI.
   ethBalance: BigInt!
 
-  # Total ETH rewards (in WEI) accrued during the lifecycle of the staker. 
+  # Total ETH rewards (in WEI) accrued during the lifecycle of the staker.
   totalETHRewards: BigInt!
 
   # Indicates if this staker has accrued ETH rewards at some point in time during its lifetime.
@@ -58,8 +58,8 @@ type Staker @entity {
   blockTime: BigInt!
 }
 
-# Tracks the mint, burn and transfers of rETH. 
-type RocketETHTransaction @entity {
+# Tracks the mint, burn and transfers of rETH.
+type RocketETHTransaction @entity(immutable: true) {
   # Composite key based on transaction hash of the triggered event and its log index.
   id: ID!
 
@@ -93,12 +93,12 @@ type NetworkStakerBalanceCheckpoint @entity {
   # Id to the the next checkpoint.
   nextCheckpointId: String
 
-  # Staker ETH (in WEI) balance (initial deposit + (ETH network rewards - average node fee)) on the beacon chain at this checkpoint. 
+  # Staker ETH (in WEI) balance (initial deposit + (ETH network rewards - average node fee)) on the beacon chain at this checkpoint.
   stakerETHActivelyStaking: BigInt!
-  
+
   # Staker ETH (in WEI) waiting in the deposit pool at this checkpoint.
   stakerETHWaitingInDepositPool: BigInt!
- 
+
   # Staker ETH (in WEI) in the RocketETH contract at this checkpoint.
   stakerETHInRocketETHContract: BigInt!
 
@@ -160,7 +160,7 @@ type StakerBalanceCheckpoint @entity {
 # A node address that was registered by a node operator.
 type Node @entity {
   # Address that is associated with a node on RocketPool.
-  id: ID! 
+  id: ID!
 
   # Current timezone for this node.
   timezone: NetworkNodeTimezone!
@@ -224,7 +224,7 @@ type Node @entity {
 
   # Average minipool fee for the active (NOT finalized or destroyed) minipools for this node operator.
   averageFeeForActiveMinipools: BigInt!
- 
+
   # Last node balance checkpoint for this node.
   lastNodeBalanceCheckpoint: NodeBalanceCheckpoint
 
@@ -255,7 +255,7 @@ type NodeRPLStakeTransaction @entity {
 
   # The total RPL amount that concerns this transaction.
   amount: BigInt!
-  
+
   # The total ETH equivalent at the time of this transaction.
   ethAmount: BigInt!
 
@@ -314,10 +314,10 @@ type RPLRewardInterval @entity {
   averageNodeRewardClaim: BigInt!
 
   # The total number of claims done for the ODAO reward claim contract during this interval.
-  odaoRewardClaimCount:  BigInt!
+  odaoRewardClaimCount: BigInt!
 
   # The total number of claims done for the regular node reward claim contract during this interval.
-  nodeRewardClaimCount:  BigInt!
+  nodeRewardClaimCount: BigInt!
 
   # The total RPL rewards that were given out in this interval.
   rplRewardClaims: [RPLRewardClaim!]!
@@ -367,7 +367,7 @@ type RPLRewardClaim @entity {
 
   # The total RPL amount of this claim.
   amount: BigInt!
-  
+
   # The total ETH equivalent (in WEI) at the time of this reward.
   ethAmount: BigInt!
 
@@ -399,7 +399,7 @@ type NetworkNodeTimezone @entity {
 # Represents a network balance checkpoint for all nodes.
 type NetworkNodeBalanceCheckpoint @entity {
   # Composite key based on transaction hash of the triggered event and its log index.
-  id: ID! 
+  id: ID!
 
   # Id to the the previous checkpoint.
   previousCheckpointId: String
@@ -446,7 +446,7 @@ type NetworkNodeBalanceCheckpoint @entity {
   # Average reward per claim via the ODAO reward claim contract from all previous checkpoints up to this checkpoint.
   averageODAORewardClaim: BigInt!
 
-   # Average total accrued rewards via the regular node reward claim contract from all previous checkpoints up to this checkpoint.
+  # Average total accrued rewards via the regular node reward claim contract from all previous checkpoints up to this checkpoint.
   averageNodeTotalRewardsClaimed: BigInt!
 
   # Average reward per claim via the regular node reward claim contract from all previous checkpoints up to this checkpoint.
@@ -489,10 +489,10 @@ type NetworkNodeBalanceCheckpoint @entity {
 # Represents a balance checkpoint for a node.
 type NodeBalanceCheckpoint @entity {
   # Composite key consisting of the NetworkNodeBalanceCheckpoint ID and the Node ID.
-  id: ID! 
+  id: ID!
 
   # Node that is associated with this checkpoint.
-  Node: Node! 
+  Node: Node!
 
   # Network node balance checkpoint associated with this checkpoint.
   NetworkNodeBalanceCheckpoint: NetworkNodeBalanceCheckpoint!
@@ -567,25 +567,25 @@ type NodeBalanceCheckpoint @entity {
 # Represents a minipool for a node.
 type Minipool @entity {
   # Address of the minipool.
-  id: ID! 
+  id: ID!
 
   # Node that is associated with this minipool.
   node: Node!
 
   # Fee that was assigned to this minipool when it was created.
-  fee: BigInt! 
+  fee: BigInt!
 
   # Node deposit ETH amount (in WEI) that was assigned to this minipool when it was created.
-  nodeDepositETHAmount: BigInt! 
+  nodeDepositETHAmount: BigInt!
 
   # Block timestamp at which this minipool received a node deposit.
-  nodeDepositBlockTime: BigInt! 
+  nodeDepositBlockTime: BigInt!
 
   # User deposit ETH amount (in WEI) that was assigned to this minipool.
-  userDepositETHAmount: BigInt! 
+  userDepositETHAmount: BigInt!
 
   # Block timestamp at which this minipool received a user deposit.
-  userDepositBlockTime: BigInt! 
+  userDepositBlockTime: BigInt!
 
   # Block timestamp at which this minipool was queued.
   queuedBlockTime: BigInt!
