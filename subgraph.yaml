@@ -74,6 +74,31 @@ dataSources:
           handler: handleNodeTimezoneChanged
       file: ./src/mappings/rocketNodeManager.ts
 
+  ## RocketNodeManager Version 2 ##
+  - kind: ethereum/contract
+    name: rocketNodeManager
+    network: mainnet
+    source:
+      address: "0x372236c940f572020c0c0eb1ac7212460e4e5a33"
+      abi: rocketNodeManager
+      startBlock: 15786583
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Node
+        - NetworkNodeTimezone
+      abis:
+        - name: rocketNodeManager
+          file: ./abis/rocketNodeManager.json
+      eventHandlers:
+        - event: NodeRegistered(indexed address,uint256)
+          handler: handleNodeRegister
+        - event: NodeTimezoneLocationSet(indexed address,uint256)
+          handler: handleNodeTimezoneChanged
+      file: ./src/mappings/rocketNodeManager.ts
+
   - kind: ethereum/contract
     name: rocketNodeStaking
     network: mainnet
