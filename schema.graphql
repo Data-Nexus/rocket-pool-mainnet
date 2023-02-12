@@ -39,17 +39,11 @@ type Staker @entity {
   # Current rETH balance in WEI.
   rETHBalance: BigInt!
 
-  # Current ETH balance in WEI.
-  ethBalance: BigInt!
+  " Stakers entry conversion rate as a weighted average "
+  avgEntry: BigDecimal
 
-  # Total ETH rewards (in WEI) accrued during the lifecycle of the staker.
-  totalETHRewards: BigInt!
-
-  # Indicates if this staker has accrued ETH rewards at some point in time during its lifetime.
-  hasAccruedETHRewardsDuringLifecycle: Boolean!
-
-  # The last known staker balance checkpoint for this staker.
-  lastBalanceCheckpoint: StakerBalanceCheckpoint
+  " Weighted time entry "
+  AvgEntryTime: BigInt
 
   # Block number at which this staker first received rETH.
   block: BigInt!
