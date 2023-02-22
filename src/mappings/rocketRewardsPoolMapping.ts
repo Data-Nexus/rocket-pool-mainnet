@@ -69,10 +69,11 @@ export function handleRPLTokensClaimed(event: RPLTokensClaimed): void {
       // We need to close our indexed RPL Rewards interval.
       activeIndexedRewardInterval.intervalClosedTime = event.block.timestamp;
       activeIndexedRewardInterval.isClosed = true;
-      activeIndexedRewardInterval.intervalDurationActual = event.block.timestamp.minus(activeIndexedRewardInterval.intervalStartTime);
-      if (activeIndexedRewardInterval.intervalDurationActual < BigInt.fromI32(0)) {
-        activeIndexedRewardInterval.intervalDurationActual = activeIndexedRewardInterval.intervalDuration;
+      let intervalDurationActual = event.block.timestamp.minus(activeIndexedRewardInterval.intervalStartTime);
+      if (intervalDurationActual.lt(BigInt.fromI32(0))) {
+        intervalDurationActual = activeIndexedRewardInterval.intervalDuration;
       }
+      activeIndexedRewardInterval.intervalDurationActual = intervalDurationActual;
       previousActiveIndexedRewardInterval = activeIndexedRewardInterval;
       previousActiveIndexedRewardIntervalId = previousActiveIndexedRewardInterval.id;
     }
