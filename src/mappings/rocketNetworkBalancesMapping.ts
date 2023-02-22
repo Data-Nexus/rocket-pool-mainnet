@@ -24,7 +24,8 @@ export function handleBalancesUpdated(event: BalancesUpdated): void {
   if (protocol === null) return;
 
   // Preliminary check to ensure we haven't handled this before.
-  if (stakerUtilities.hasNetworkStakerBalanceCheckpointHasBeenIndexed(protocol, event)) return;
+  // commented out 2/21/2023 to run data checks w/o
+  //if (stakerUtilities.hasNetworkStakerBalanceCheckpointHasBeenIndexed(protocol, event)) return;
 
   // Load the RocketTokenRETH contract
   // We will need the rocketvault smart contract state to get specific addresses.

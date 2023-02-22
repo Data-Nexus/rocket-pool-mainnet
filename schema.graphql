@@ -240,6 +240,9 @@ type Node @entity {
   # Associated minipools for this node.
   minipools: [Minipool!]!
 
+  # Is the node registerd with the smoothing pool
+  smoothingPool: Boolean!
+
   # Block number at which this node was first registered with the protocol.
   block: BigInt!
 
