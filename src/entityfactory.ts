@@ -1,11 +1,10 @@
-import { ethereum, BigInt } from "@graphprotocol/graph-ts";
+import {ethereum, BigInt, BigDecimal} from "@graphprotocol/graph-ts";
 import {
   Staker,
   Node,
   RocketETHTransaction,
   NetworkStakerBalanceCheckpoint,
   RocketPoolProtocol,
-  StakerBalanceCheckpoint,
   NetworkNodeTimezone,
   NodeRPLStakeTransaction,
   RPLRewardInterval,
@@ -14,8 +13,8 @@ import {
   NodeBalanceCheckpoint,
   Minipool,
 } from "../generated/schema";
-import { BalancesUpdated } from "../generated/rocketNetworkBalances/rocketNetworkBalances";
-import { ROCKETPOOL_PROTOCOL_ROOT_ID } from "./constants/generalconstants";
+import {BalancesUpdated} from "../generated/rocketNetworkBalances/rocketNetworkBalances";
+import {ROCKETPOOL_PROTOCOL_ROOT_ID} from "./constants/generalconstants";
 
 class RocketPoolEntityFactory {
   /**
@@ -110,48 +109,12 @@ class RocketPoolEntityFactory {
 
     let staker = new Staker(id);
     staker.rETHBalance = BigInt.fromI32(0);
-    staker.ethBalance = BigInt.fromI32(0);
-    staker.totalETHRewards = BigInt.fromI32(0);
-    staker.lastBalanceCheckpoint = null;
-    staker.hasAccruedETHRewardsDuringLifecycle = false;
+    staker.avgEntry = BigDecimal.fromString("0");
+    staker.AvgEntryTime = BigInt.fromI32(0);
     staker.block = blockNumber;
     staker.blockTime = blockTime;
 
     return staker;
-  }
-
-  /**
-   * Attempts to create a new staker balance checkpoint for the given values.
-   */
-  public createStakerBalanceCheckpoint(
-    id: string,
-    staker: Staker | null,
-    networkStakerBalanceCheckpoint: NetworkStakerBalanceCheckpoint | null,
-    ethBalance: BigInt,
-    rEthBalance: BigInt,
-    totalETHRewards: BigInt,
-    blockNumber: BigInt,
-    blockTime: BigInt
-  ): StakerBalanceCheckpoint | null {
-    if (
-      id == null ||
-      staker === null ||
-      staker.id == null ||
-      networkStakerBalanceCheckpoint === null ||
-      networkStakerBalanceCheckpoint.id == null
-    )
-      return null;
-
-    let stakerBalanceCheckpoint = new StakerBalanceCheckpoint(id);
-    stakerBalanceCheckpoint.stakerId = staker.id;
-    stakerBalanceCheckpoint.networkStakerBalanceCheckpointId = networkStakerBalanceCheckpoint.id;
-    stakerBalanceCheckpoint.ethBalance = ethBalance;
-    stakerBalanceCheckpoint.rETHBalance = rEthBalance;
-    stakerBalanceCheckpoint.totalETHRewards = totalETHRewards;
-    stakerBalanceCheckpoint.block = blockNumber;
-    stakerBalanceCheckpoint.blockTime = blockTime;
-
-    return stakerBalanceCheckpoint;
   }
 
   /**

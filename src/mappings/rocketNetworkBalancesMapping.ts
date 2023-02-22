@@ -1,16 +1,16 @@
-import { BalancesUpdated } from "../../generated/rocketNetworkBalances/rocketNetworkBalances";
-import { rocketTokenRETH } from "../../generated/rocketNetworkBalances/rocketTokenRETH";
-import { rocketDepositPool } from "../../generated/rocketNetworkBalances/rocketDepositPool";
-import { Staker, NetworkStakerBalanceCheckpoint, RocketPoolProtocol } from "../../generated/schema";
-import { generalUtilities } from "../utilities/generalUtilities";
-import { stakerUtilities } from "../utilities/stakerutilities";
-import { rocketPoolEntityFactory } from "../entityfactory";
+import {BalancesUpdated} from "../../generated/rocketNetworkBalances/rocketNetworkBalances";
+import {rocketTokenRETH} from "../../generated/rocketNetworkBalances/rocketTokenRETH";
+import {rocketDepositPool} from "../../generated/rocketNetworkBalances/rocketDepositPool";
+import {Staker, NetworkStakerBalanceCheckpoint, RocketPoolProtocol} from "../../generated/schema";
+import {generalUtilities} from "../utilities/generalUtilities";
+import {stakerUtilities} from "../utilities/stakerutilities";
+import {rocketPoolEntityFactory} from "../entityfactory";
 import {
   ZERO_ADDRESS_STRING,
   ROCKET_DEPOSIT_POOL_CONTRACT_ADDRESS,
   ROCKET_TOKEN_RETH_CONTRACT_ADDRESS,
 } from "./../constants/contractconstants";
-import { Address, BigInt } from "@graphprotocol/graph-ts";
+import {Address, BigInt} from "@graphprotocol/graph-ts";
 
 /**
  * When enough ODAO members votes on a balance and a consensus threshold is reached, the staker beacon chain state is persisted to the smart contracts.
@@ -70,16 +70,7 @@ export function handleBalancesUpdated(event: BalancesUpdated): void {
     }
   }
 
-  // Handle the staker impact.
-  generateStakerBalanceCheckpoints(
-    protocol.activeStakers,
-    checkpoint,
-    previousCheckpoint !== null ? previousCheckpoint : null,
-    previousRETHExchangeRate,
-    event.block.number,
-    event.block.timestamp,
-    protocol
-  );
+  //Add logic for rETH timeseries
 
   // If for some reason the running summary totals up to this checkpoint was 0, then we try to set it based on the previous checkpoint.
   if (checkpoint.totalStakerETHRewards == BigInt.fromI32(0)) {
@@ -105,70 +96,6 @@ export function handleBalancesUpdated(event: BalancesUpdated): void {
   checkpoint.save();
   if (previousCheckpoint !== null) previousCheckpoint.save();
   protocol.save();
-}
-
-/**
- * Loops through all stakers of the protocol.
- * If an active rETH balance is found..
- * Create a StakerBalanceCheckpoint
- */
-function generateStakerBalanceCheckpoints(
-  activeStakerIds: Array<string>,
-  networkCheckpoint: NetworkStakerBalanceCheckpoint,
-  previousCheckpoint: NetworkStakerBalanceCheckpoint | null,
-  previousRETHExchangeRate: BigInt,
-  blockNumber: BigInt,
-  blockTime: BigInt,
-  protocol: RocketPoolProtocol
-): void {
-  // Update grand totals based on previous checkpoint before we do anything.
-  stakerUtilities.updateNetworkStakerBalanceCheckpointForPreviousCheckpointAndProtocol(networkCheckpoint, previousCheckpoint, protocol);
-
-  // Loop through all the staker id's in the protocol.
-  for (let index = 0; index < activeStakerIds.length; index++) {
-    // Determine current staker ID.
-    let stakerId = <string>activeStakerIds[index];
-    if (stakerId == null || stakerId == ZERO_ADDRESS_STRING) continue;
-
-    // Load the indexed staker.
-    let staker = Staker.load(stakerId);
-
-    // Shouldn't occur since we're only passing in staker ID's that have an active rETH balance.
-    if (staker === null || staker.rETHBalance == BigInt.fromI32(0)) continue;
-
-    // Get the current & previous balances for this staker and update the staker balance for the current exchange rate.
-    let stakerBalance = stakerUtilities.getStakerBalance(<Staker>staker, networkCheckpoint.rETHExchangeRate);
-    staker.ethBalance = stakerBalance.currentETHBalance;
-
-    // Calculate rewards (+/-) for this staker since the previous checkpoint.
-    let ethRewardsSincePreviousCheckpoint = stakerUtilities.getETHRewardsSincePreviousStakerBalanceCheckpoint(
-      stakerBalance.currentRETHBalance,
-      stakerBalance.currentETHBalance,
-      stakerBalance.previousRETHBalance,
-      stakerBalance.previousETHBalance,
-      previousRETHExchangeRate,
-      networkCheckpoint.rETHExchangeRate
-    );
-    stakerUtilities.handleEthRewardsSincePreviousCheckpoint(ethRewardsSincePreviousCheckpoint, <Staker>staker, networkCheckpoint, protocol);
-
-    // Create a new staker balance checkpoint
-    let stakerBalanceCheckpoint = rocketPoolEntityFactory.createStakerBalanceCheckpoint(
-      networkCheckpoint.id + " - " + stakerId,
-      staker,
-      networkCheckpoint,
-      stakerBalance.currentETHBalance,
-      stakerBalance.currentRETHBalance,
-      staker.totalETHRewards,
-      blockNumber,
-      blockTime
-    );
-    if (stakerBalanceCheckpoint == null) continue;
-    staker.lastBalanceCheckpoint = stakerBalanceCheckpoint.id;
-
-    // Index both the updated staker & the new staker balance checkpoint.
-    stakerBalanceCheckpoint.save();
-    staker.save();
-  }
 }
 
 /**

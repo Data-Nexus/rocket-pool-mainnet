@@ -76,6 +76,48 @@ type RocketETHTransaction @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+#
+type RocketETHDailySnapshot @entity {
+  # day number (timestamp / 86400)
+  id: ID!
+
+  # Staker ETH (in WEI) balance (initial deposit + (ETH network rewards - average node fee)) on the beacon chain at this checkpoint.
+  stakerETHActivelyStaking: BigInt!
+
+  # Staker ETH (in WEI) waiting in the deposit pool at this checkpoint.
+  stakerETHWaitingInDepositPool: BigInt!
+
+  # Staker ETH (in WEI) in the RocketETH contract at this checkpoint.
+  stakerETHInRocketETHContract: BigInt!
+
+  # Staker ETH (in WEI) in RocketPool at this checkpoint.
+  stakerETHInProtocol: BigInt!
+
+  # Staker ETH rewards (+/-) (in WEI) for all staker balance checkpoints up to this checkpoint.
+  totalStakerETHRewards: BigInt!
+
+  # Stakers that have had ETH rewards (+/-) up to this checkpoint.
+  totalStakersWithETHRewards: BigInt!
+
+  # Average staker ETH rewards (+/-) (in WEI) up to this checkpoint.
+  averageStakerETHRewards: BigInt!
+
+  # Total unique stakers that have an rETH balance (in WEI) greater than 0 at this checkpoint.
+  stakersWithAnRETHBalance: BigInt!
+
+  # Total rETH supply at this checkpoint.
+  totalRETHSupply: BigInt!
+
+  # Exchange rate of ETH:rETH (in WEI) at this checkpoint.
+  rETHExchangeRate: BigInt!
+
+  # Block Number of this checkpoint.
+  block: BigInt!
+
+  # Block Timestamp of this checkpoint.
+  blockTime: BigInt!
+}
+
 # Summarizes staker related balances at a specific block and timestamp.
 type NetworkStakerBalanceCheckpoint @entity {
   # Composite key based on transaction hash of the triggered event and its log index.
@@ -116,33 +158,6 @@ type NetworkStakerBalanceCheckpoint @entity {
 
   # Exchange rate of ETH:rETH (in WEI) at this checkpoint.
   rETHExchangeRate: BigInt!
-
-  # Block Number of this checkpoint.
-  block: BigInt!
-
-  # Block Timestamp of this checkpoint.
-  blockTime: BigInt!
-}
-
-# Summarizes balances for a staker at a specific block and timestamp.
-type StakerBalanceCheckpoint @entity {
-  # Composite key consisting of the NetworkBalanceCheckpoint ID and the Staker ID.
-  id: ID!
-
-  # Staker that is associated with this balance checkpoint.
-  stakerId: String!
-
-  # The network staker balance checkpoint that triggered the creation of this reward.
-  networkStakerBalanceCheckpointId: String!
-
-  # ETH balance (in WEI) of the staker of this checkpoint.
-  ethBalance: BigInt!
-
-  # rETH balance (in WEI) of the staker of this checkpoint.
-  rETHBalance: BigInt!
-
-  # Total ETH rewards (in WEI) up to this checkpoint.
-  totalETHRewards: BigInt!
 
   # Block Number of this checkpoint.
   block: BigInt!
