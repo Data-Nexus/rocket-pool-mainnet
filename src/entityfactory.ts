@@ -155,7 +155,6 @@ class RocketPoolEntityFactory {
     node.totalFinalizedMinipools = BigInt.fromI32(0);
     node.averageFeeForActiveMinipools = BigInt.fromI32(0);
     node.lastNodeBalanceCheckpoint = null;
-    node.minipools = new Array<string>(0);
     node.smoothingPool = false;
     node.block = blockNumber;
     node.blockTime = blockTime;

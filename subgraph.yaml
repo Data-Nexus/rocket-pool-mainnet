@@ -184,7 +184,7 @@ dataSources:
     source:
       address: "0xFc1a4a1eaF9e80FA5380ce45d9D12bdF7A81ca18"
       abi: rocketMinipoolManagerV1
-      startBlock: 13325242
+      startBlock: 13325241
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -287,7 +287,7 @@ dataSources:
       startBlock: 15786583
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.7
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
         - Node
