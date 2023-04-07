@@ -1,7 +1,7 @@
 import {BalancesUpdated} from "../../generated/rocketNetworkBalances/rocketNetworkBalances";
 import {rocketTokenRETH} from "../../generated/rocketNetworkBalances/rocketTokenRETH";
 import {rocketDepositPool} from "../../generated/rocketNetworkBalances/rocketDepositPool";
-import {Staker, NetworkStakerBalanceCheckpoint, RocketPoolProtocol} from "../../generated/schema";
+import {Staker, NetworkStakerBalanceCheckpoint, RocketPoolProtocol, RocketETHDailySnapshot} from "../../generated/schema";
 import {generalUtilities} from "../utilities/generalUtilities";
 import {stakerUtilities} from "../utilities/stakerutilities";
 import {rocketPoolEntityFactory} from "../entityfactory";
@@ -72,6 +72,54 @@ export function handleBalancesUpdated(event: BalancesUpdated): void {
   }
 
   //Add logic for rETH timeseries
+  if (previousCheckpoint && checkpoint) {
+    let snapshotId = checkpoint.blockTime.div(BigInt.fromI32(86400));
+    let rocketETHDailySnapshot = RocketETHDailySnapshot.load(snapshotId.toString());
+    let previousSnapshotId = previousCheckpoint.blockTime.div(BigInt.fromI32(86400));
+    let previousRocketETHDailySnapshot = RocketETHDailySnapshot.load(snapshotId.toString());
+
+    //if snapshotId doesn't load a record, we're in a new day and need to stradle the rewards
+    if (!rocketETHDailySnapshot) {
+      //find the timestamp for the start of the new day
+      let dayMarker = snapshotId.times(BigInt.fromI32(86400));
+      //calculate the % of time that the checkpoint is in the new day versus the prior
+      let priorDayPercentage = previousCheckpoint.blockTime
+        .minus(dayMarker)
+        .toBigDecimal()
+        .div(checkpoint.blockTime.minus(previousCheckpoint.blockTime).toBigDecimal());
+
+      rocketETHDailySnapshot = new RocketETHDailySnapshot(snapshotId.toString());
+      rocketETHDailySnapshot.stakerETHActivelyStaking = checkpoint.stakerETHActivelyStaking; //BigInt!
+      rocketETHDailySnapshot.stakerETHWaitingInDepositPool = checkpoint.stakerETHWaitingInDepositPool; //BigInt!
+      rocketETHDailySnapshot.stakerETHInRocketETHContract = checkpoint.stakerETHInRocketETHContract; //BigInt!
+      rocketETHDailySnapshot.stakerETHInProtocol = checkpoint.stakerETHInProtocol; //BigInt!
+      rocketETHDailySnapshot.totalStakerETHRewards = checkpoint.totalStakerETHRewards; //BigInt!
+      rocketETHDailySnapshot.totalStakersWithETHRewards = checkpoint.totalStakersWithETHRewards; //BigInt!
+      rocketETHDailySnapshot.averageStakerETHRewards = checkpoint.averageStakerETHRewards; //BigInt!
+      rocketETHDailySnapshot.stakersWithAnRETHBalance = checkpoint.stakersWithAnRETHBalance; //BigInt!
+      rocketETHDailySnapshot.totalRETHSupply = checkpoint.totalRETHSupply; //BigInt!
+      rocketETHDailySnapshot.rETHExchangeRate = checkpoint.rETHExchangeRate; //BigInt!
+      rocketETHDailySnapshot.block = checkpoint.block;
+      rocketETHDailySnapshot.blockTime = checkpoint.blockTime;
+
+      let newExchange = previousRocketETHDailySnapshot?.rETHExchangeRate;
+    }
+    //if the snapshotId loads a record, then we have 2 snapshots for the same day
+    else {
+      rocketETHDailySnapshot.stakerETHActivelyStaking = checkpoint.stakerETHActivelyStaking;
+      rocketETHDailySnapshot.stakerETHWaitingInDepositPool = checkpoint.stakerETHWaitingInDepositPool;
+      rocketETHDailySnapshot.stakerETHInRocketETHContract = checkpoint.stakerETHInRocketETHContract;
+      rocketETHDailySnapshot.stakerETHInProtocol = checkpoint.stakerETHInProtocol;
+      rocketETHDailySnapshot.totalStakerETHRewards = checkpoint.totalStakerETHRewards;
+      rocketETHDailySnapshot.totalStakersWithETHRewards = checkpoint.totalStakersWithETHRewards;
+      rocketETHDailySnapshot.averageStakerETHRewards = checkpoint.averageStakerETHRewards;
+      rocketETHDailySnapshot.stakersWithAnRETHBalance = checkpoint.stakersWithAnRETHBalance;
+      rocketETHDailySnapshot.totalRETHSupply = checkpoint.totalRETHSupply;
+      rocketETHDailySnapshot.rETHExchangeRate = checkpoint.rETHExchangeRate;
+      rocketETHDailySnapshot.block = checkpoint.block;
+      rocketETHDailySnapshot.blockTime = checkpoint.blockTime;
+    }
+  }
 
   // If for some reason the running summary totals up to this checkpoint was 0, then we try to set it based on the previous checkpoint.
   if (checkpoint.totalStakerETHRewards == BigInt.fromI32(0)) {
