@@ -88,6 +88,22 @@ export function handleBalancesUpdated(event: BalancesUpdated): void {
         .toBigDecimal()
         .div(checkpoint.blockTime.minus(previousCheckpoint.blockTime).toBigDecimal());
 
+      // find the prior day to update, calculate what percentage of the checkpoint was in the previous day
+      // multiply the difference by the percentage and add it to the prior value.
+      if (previousRocketETHDailySnapshot) {
+        let midnightExchange = checkpoint.rETHExchangeRate;
+        let midnightDifference = midnightExchange.minus(previousRocketETHDailySnapshot.rETHExchangeRate);
+        midnightDifference = BigInt.fromString(
+          midnightDifference
+            .toBigDecimal()
+            .times(priorDayPercentage)
+            .toString()
+        );
+        midnightExchange = previousRocketETHDailySnapshot.rETHExchangeRate.plus(midnightDifference);
+
+        previousRocketETHDailySnapshot.save();
+      }
+
       rocketETHDailySnapshot = new RocketETHDailySnapshot(snapshotId.toString());
       rocketETHDailySnapshot.stakerETHActivelyStaking = checkpoint.stakerETHActivelyStaking; //BigInt!
       rocketETHDailySnapshot.stakerETHWaitingInDepositPool = checkpoint.stakerETHWaitingInDepositPool; //BigInt!
@@ -101,8 +117,6 @@ export function handleBalancesUpdated(event: BalancesUpdated): void {
       rocketETHDailySnapshot.rETHExchangeRate = checkpoint.rETHExchangeRate; //BigInt!
       rocketETHDailySnapshot.block = checkpoint.block;
       rocketETHDailySnapshot.blockTime = checkpoint.blockTime;
-
-      let newExchange = previousRocketETHDailySnapshot?.rETHExchangeRate;
     }
     //if the snapshotId loads a record, then we have 2 snapshots for the same day
     else {
