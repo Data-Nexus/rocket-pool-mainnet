@@ -183,7 +183,7 @@ dataSources:
     network: mainnet
     source:
       address: "0xFc1a4a1eaF9e80FA5380ce45d9D12bdF7A81ca18"
-      abi: rocketMinipoolManagerV1
+      abi: rocketMinipoolManager
       startBlock: 13325241
     mapping:
       kind: ethereum/events
@@ -192,8 +192,8 @@ dataSources:
       entities:
         - Minipool
       abis:
-        - name: rocketMinipoolManagerV1
-          file: ./abis/rocketMinipoolManagerV1.json
+        - name: rocketMinipoolManager
+          file: ./abis/rocketMinipoolManager.json
         - name: rocketNetworkFees
           file: ./abis/rocketNetworkFees.json
         - name: rocketNodeStaking
@@ -203,13 +203,13 @@ dataSources:
           handler: handleMinipoolCreated
         - event: MinipoolDestroyed(indexed address,indexed address,uint256)
           handler: handleMinipoolDestroyed
-      file: ./src/mappings/rocketMinipoolManager/V1.ts
+      file: ./src/mappings/rocketMinipoolManager.ts
   - kind: ethereum/contract
     name: rocketMinipoolManagerV2
     network: mainnet
     source:
       address: "0x6293b8abc1f36afb22406be5f96d893072a8cf3a"
-      abi: rocketMinipoolManagerV2
+      abi: rocketMinipoolManager
       startBlock: 13535419
     mapping:
       kind: ethereum/events
@@ -218,8 +218,8 @@ dataSources:
       entities:
         - Minipool
       abis:
-        - name: rocketMinipoolManagerV2
-          file: ./abis/rocketMinipoolManagerV2.json
+        - name: rocketMinipoolManager
+          file: ./abis/rocketMinipoolManager.json
         - name: rocketNetworkFees
           file: ./abis/rocketNetworkFees.json
         - name: rocketNodeStaking
@@ -229,7 +229,7 @@ dataSources:
           handler: handleMinipoolCreatedV2
         - event: MinipoolDestroyed(indexed address,indexed address,uint256)
           handler: handleMinipoolDestroyedV2
-      file: ./src/mappings/rocketMinipoolManager/V2.ts
+      file: ./src/mappings/rocketMinipoolManager.ts
   - kind: ethereum/contract
     name: rocketMinipoolqueue
     network: mainnet
@@ -305,43 +305,22 @@ dataSources:
         #   handler: handleNodeTimezoneLocationSet
       file: ./src/mappings/rocketSmoothingPool.ts
 templates:
-  - name: rocketMinipoolDelegateV1
+  - name: rocketMinipoolDelegate
     kind: ethereum/contract
     network: mainnet
     source:
-      abi: rocketMinipoolDelegateV1
+      abi: rocketMinipoolDelegate
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/mappings/rocketMinipoolDelegate/V1.ts
+      file: ./src/mappings/rocketMinipoolDelegate.ts
       entities:
         - Minipool
         - Node
       abis:
-        - name: rocketMinipoolDelegateV1
-          file: ./abis/rocketMinipoolDelegateV1.json
-      eventHandlers:
-        - event: StatusUpdated(indexed uint8,uint256)
-          handler: handleStatusUpdated
-        - event: EtherDeposited(indexed address,uint256,uint256)
-          handler: handleEtherDeposited
-  - name: rocketMinipoolDelegateV2
-    kind: ethereum/contract
-    network: mainnet
-    source:
-      abi: rocketMinipoolDelegateV2
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      file: ./src/mappings/rocketMinipoolDelegate/V2.ts
-      entities:
-        - Minipool
-        - Node
-      abis:
-        - name: rocketMinipoolDelegateV2
-          file: ./abis/rocketMinipoolDelegateV2.json
+        - name: rocketMinipoolDelegate
+          file: ./abis/rocketMinipoolDelegate.json
       eventHandlers:
         - event: StatusUpdated(indexed uint8,uint256)
           handler: handleStatusUpdated

@@ -1,15 +1,15 @@
-import {Address, BigInt} from "@graphprotocol/graph-ts";
+import {Address, BigInt, log} from "@graphprotocol/graph-ts";
 import {
   IncrementNodeFinalisedMinipoolCountCall,
   MinipoolCreated,
   MinipoolDestroyed,
-} from "../../../generated/rocketMinipoolManagerV2/rocketMinipoolManagerV2";
-import {rocketNetworkFees} from "../../../generated/rocketMinipoolManagerV2/rocketNetworkFees";
-import {rocketNodeStaking} from "../../../generated/rocketMinipoolManagerV2/rocketNodeStaking";
-import {ROCKET_NETWORK_FEES_CONTRACT_ADDRESS, ROCKET_NODE_STAKING_CONTRACT_ADDRESS} from "../../constants/contractconstants";
-import {Minipool, Node} from "../../../generated/schema";
-import {rocketPoolEntityFactory} from "../../entityfactory";
-import {rocketMinipoolDelegateV1, rocketMinipoolDelegateV2} from "../../../generated/templates";
+} from "../../generated/rocketMinipoolManager/rocketMinipoolManager";
+import {rocketNetworkFees} from "../../generated/rocketMinipoolManagerV2/rocketNetworkFees";
+import {rocketNodeStaking} from "../../generated/rocketMinipoolManagerV2/rocketNodeStaking";
+import {ROCKET_NETWORK_FEES_CONTRACT_ADDRESS, ROCKET_NODE_STAKING_CONTRACT_ADDRESS} from "../constants/contractconstants";
+import {Minipool, Node} from "../../generated/schema";
+import {rocketPoolEntityFactory} from "../entityfactory";
+import {rocketMinipoolDelegate} from "../../generated/templates";
 
 /**
  * Occurs when a node operator makes an ETH deposit on his node to create a minipool.
@@ -40,7 +40,13 @@ export function handleMinipoolCreatedV2(event: MinipoolCreated): void {
   if (minipool === null) return;
 
   // Add this minipool to the collection of the node
-  let nodeMinipools = node.minipools;
+  let nodeMinipools = node.minipoolIds;
+  if (!nodeMinipools) nodeMinipools = [minipool.id];
+  if (nodeMinipools.indexOf(minipool.id) == -1) nodeMinipools.push(minipool.id);
+  node.minipoolIds = nodeMinipools;
+
+  // Index the minipool.
+  minipool.save();
 
   // Creating a minipool requires the node operator to put up a certain amount of RPL in order to receive rewards.
   setEffectiveRPLStaked(<Node>node);
@@ -51,12 +57,8 @@ export function handleMinipoolCreatedV2(event: MinipoolCreated): void {
   // Index the changes to the associated node.
   node.save();
 
-  // Get the appropriate delegate template for this block and use it to create another instance of the entity.
-  if (event.block.number < BigInt.fromI32(13535384)) {
-    rocketMinipoolDelegateV1.create(Address.fromString(minipool.id));
-  } else {
-    rocketMinipoolDelegateV2.create(Address.fromString(minipool.id));
-  }
+  // Create the Minipool
+  rocketMinipoolDelegate.create(Address.fromString(minipool.id));
 }
 
 /**

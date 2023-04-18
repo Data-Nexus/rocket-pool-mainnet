@@ -238,6 +238,9 @@ type Node @entity {
   lastNodeBalanceCheckpoint: NodeBalanceCheckpoint
 
   # Associated minipools for this node.
+  minipoolIds: [String!]
+
+  # Associated minipools for this node.
   minipools: [Minipool!]! @derivedFrom(field: "node")
 
   # Is the node registerd with the smoothing pool
