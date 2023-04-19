@@ -29,6 +29,8 @@ export function handleNodeSmoothingPoolStateChanged(event: NodeSmoothingPoolStat
   if (!node) return;
 
   node.smoothingPool = event.params.state;
+
+  node.save();
 }
 
 // export function handleNodeRewardNetworkChanged(event: NodeRewardNetworkChangedEvent): void {
