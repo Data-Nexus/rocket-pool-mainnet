@@ -362,12 +362,38 @@ dataSources:
           handler: handleMinipoolDestroyed
       file: ./src/mappings/rocketMinipoolManager.ts
   - kind: ethereum/contract
-    name: rocketMinipoolManagerRedstone
+    name: rocketMinipoolManager
     network: mainnet
     source:
       address: "0x6293b8abc1f36afb22406be5f96d893072a8cf3a"
       abi: rocketMinipoolManager
       startBlock: 13535419
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Minipool
+      abis:
+        - name: rocketMinipoolManager
+          file: ./abis/rocketMinipoolManager.json
+        - name: rocketNetworkFees
+          file: ./abis/rocketNetworkFees.json
+        - name: rocketNodeStaking
+          file: ./abis/rocketNodeStaking.json
+      eventHandlers:
+        - event: MinipoolCreated(indexed address,indexed address,uint256)
+          handler: handleMinipoolCreated
+        - event: MinipoolDestroyed(indexed address,indexed address,uint256)
+          handler: handleMinipoolDestroyed
+      file: ./src/mappings/rocketMinipoolManager.ts
+  - kind: ethereum/contract
+    name: rocketMinipoolManagerRedstone
+    network: mainnet
+    source:
+      address: "0x84d11b65e026f7aa08f5497dd3593fb083410b71"
+      abi: rocketMinipoolManager
+      startBlock: 15342719
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
