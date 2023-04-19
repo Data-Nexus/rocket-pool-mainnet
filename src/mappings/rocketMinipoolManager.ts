@@ -14,7 +14,7 @@ import {rocketMinipoolDelegate} from "../../generated/templates";
 /**
  * Occurs when a node operator makes an ETH deposit on his node to create a minipool.
  */
-export function handleMinipoolCreatedV2(event: MinipoolCreated): void {
+export function handleMinipoolCreated(event: MinipoolCreated): void {
   // Preliminary null checks.
   if (event === null || event.params === null || event.params.node === null || event.params.minipool === null) return;
 
@@ -64,7 +64,7 @@ export function handleMinipoolCreatedV2(event: MinipoolCreated): void {
 /**
  * Occurs when a minipool is dissolved and the node operator calls destroy on his minipool.
  */
-export function handleMinipoolDestroyedV2(event: MinipoolDestroyed): void {
+export function handleMinipoolDestroyed(event: MinipoolDestroyed): void {
   // Preliminary null checks.
   if (event === null || event.params === null || event.params.node === null || event.params.minipool === null || event.block === null)
     return;
@@ -97,7 +97,7 @@ export function handleMinipoolDestroyedV2(event: MinipoolDestroyed): void {
  * TODO: Use on mainnet; call handlers don't work on goerli
  * Occurs after a node operator finalizes his minipool to unlock his RPL stake.
  */
-export function handleIncrementNodeFinalisedMinipoolCountV2(call: IncrementNodeFinalisedMinipoolCountCall): void {
+export function handleIncrementNodeFinalisedMinipoolCount(call: IncrementNodeFinalisedMinipoolCountCall): void {
   // Preliminary null checks.
   if (call === null || call.block === null || call.from === null) return;
 
