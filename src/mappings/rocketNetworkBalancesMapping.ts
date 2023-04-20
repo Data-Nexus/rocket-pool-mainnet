@@ -117,6 +117,7 @@ export function handleBalancesUpdated(event: BalancesUpdated): void {
       rocketETHDailySnapshot.rETHExchangeRate = checkpoint.rETHExchangeRate; //BigInt!
       rocketETHDailySnapshot.block = checkpoint.block;
       rocketETHDailySnapshot.blockTime = checkpoint.blockTime;
+      rocketETHDailySnapshot.save();
     }
     //if the snapshotId loads a record, then we have 2 snapshots for the same day
     else {
@@ -132,6 +133,8 @@ export function handleBalancesUpdated(event: BalancesUpdated): void {
       rocketETHDailySnapshot.rETHExchangeRate = checkpoint.rETHExchangeRate;
       rocketETHDailySnapshot.block = checkpoint.block;
       rocketETHDailySnapshot.blockTime = checkpoint.blockTime;
+
+      rocketETHDailySnapshot.save();
     }
   }
 
