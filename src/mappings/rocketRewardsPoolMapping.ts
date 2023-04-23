@@ -1,8 +1,9 @@
 import {BigInt, Address} from "@graphprotocol/graph-ts";
 import {rocketRewardsPool, RPLTokensClaimed} from "../../generated/rocketRewardsPool/rocketRewardsPool";
+import {RewardSnapshot} from "../../generated/rocketRewardsPoolAtlas/rocketRewardsPoolRedstone";
 import {rocketDAONodeTrusted} from "../../generated/rocketRewardsPool/rocketDAONodeTrusted";
 import {rocketNetworkPrices} from "../../generated/rocketRewardsPool/rocketNetworkprices";
-import {RPLRewardInterval, Node} from "../../generated/schema";
+import {RPLRewardInterval, Node, RPLRewardSubmitted} from "../../generated/schema";
 import {generalUtilities} from "../utilities/generalutilities";
 import {rocketPoolEntityFactory} from "../entityfactory";
 import {ONE_ETHER_IN_WEI, ROCKETPOOL_RPL_REWARD_INTERVAL_ID_PREFIX} from "../constants/generalconstants";
@@ -189,6 +190,27 @@ export function handleRPLTokensClaimed(event: RPLTokensClaimed): void {
 
   // Index the protocol changes.
   protocol.save();
+}
+
+export function handleRewardSnapshot(event: RewardSnapshot): void {
+  let _RPLRewardSubmitted = RPLRewardSubmitted.load(event.params.submission.rewardIndex.toString());
+
+  if (!_RPLRewardSubmitted) {
+    _RPLRewardSubmitted = new RPLRewardSubmitted(event.params.submission.rewardIndex.toString());
+    _RPLRewardSubmitted.rewardIndex = event.params.submission.rewardIndex;
+    _RPLRewardSubmitted.executionBlock = event.params.submission.executionBlock;
+    _RPLRewardSubmitted.consensusBlock = event.params.submission.consensusBlock;
+    _RPLRewardSubmitted.merkleRoot = event.params.submission.merkleRoot;
+    _RPLRewardSubmitted.merkleTreeCID = event.params.submission.merkleTreeCID;
+    _RPLRewardSubmitted.intervalsPassed = event.params.submission.intervalsPassed;
+    _RPLRewardSubmitted.treasuryRPL = event.params.submission.treasuryRPL;
+    _RPLRewardSubmitted.trustedNodeRPL = event.params.submission.trustedNodeRPL;
+    _RPLRewardSubmitted.nodeRPL = event.params.submission.nodeRPL;
+    _RPLRewardSubmitted.nodeETH = event.params.submission.nodeETH;
+    _RPLRewardSubmitted.userETH = event.params.submission.userETH;
+
+    _RPLRewardSubmitted.save();
+  }
 }
 
 /**

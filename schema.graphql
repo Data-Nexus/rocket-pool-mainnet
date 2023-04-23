@@ -96,12 +96,6 @@ type RocketETHDailySnapshot @entity {
   # Staker ETH (in WEI) in RocketPool at this checkpoint.
   stakerETHInProtocol: BigInt!
 
-  # Staker ETH rewards (+/-) (in WEI) for all staker balance checkpoints up to this checkpoint.
-  totalStakerETHRewards: BigInt!
-
-  # Stakers that have had ETH rewards (+/-) up to this checkpoint.
-  totalStakersWithETHRewards: BigInt!
-
   # Average staker ETH rewards (+/-) (in WEI) up to this checkpoint.
   averageStakerETHRewards: BigInt!
 
@@ -348,6 +342,30 @@ type RPLRewardInterval @entity {
 
   # Indicates how long the interval actually lasted.
   intervalDurationActual: BigInt
+
+  # On what block number was this interval created.
+  block: BigInt!
+
+  # At what time was this interval created.
+  blockTime: BigInt!
+}
+
+# Represents an reward interval during which RPL can be claimed by different types of claimers.
+type RPLRewardSubmitted @entity {
+  # Reward Index
+  id: ID!
+
+  rewardIndex: BigInt!
+  executionBlock: BigInt!
+  consensusBlock: BigInt!
+  merkleRoot: Bytes!
+  merkleTreeCID: String!
+  intervalsPassed: BigInt!
+  treasuryRPL: BigInt!
+  trustedNodeRPL: [BigInt!]!
+  nodeRPL: [BigInt!]!
+  nodeETH: [BigInt!]!
+  userETH: BigInt!
 
   # On what block number was this interval created.
   block: BigInt!

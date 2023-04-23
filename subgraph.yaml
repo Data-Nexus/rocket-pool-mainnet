@@ -281,7 +281,7 @@ dataSources:
     network: mainnet
     source:
       address: "0xA805d68b61956BC92d556F2bE6d18747adAeEe82"
-      abi: rocketRewardsPool
+      abi: rocketRewardsPoolRedstone
       startBlock: 17002383
     mapping:
       kind: ethereum/events
@@ -293,13 +293,15 @@ dataSources:
       abis:
         - name: rocketRewardsPool
           file: ./abis/rocketRewardsPool.json
+        - name: rocketRewardsPoolRedstone
+          file: ./abis/rocketRewardsPoolRedstone.json
         - name: rocketDAONodeTrusted
           file: ./abis/rocketDAONodeTrusted.json
         - name: rocketNetworkPrices
           file: ./abis/rocketNetworkPrices.json
       eventHandlers:
-        - event: RPLTokensClaimed(indexed address,indexed address,uint256,uint256)
-          handler: handleRPLTokensClaimed
+        - event: RewardSnapshot(indexed uint256,(uint256,uint256,uint256,bytes32,string,uint256,uint256,uint256[],uint256[],uint256[],uint256),uint256,uint256,uint256)
+          handler: handleRewardSnapshot
       file: ./src/mappings/rocketRewardsPoolMapping.ts
   - kind: ethereum/contract
     name: rocketNetworkPrices
