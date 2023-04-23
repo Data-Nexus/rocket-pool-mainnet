@@ -31,6 +31,7 @@ class RocketPoolEntityFactory {
     protocol.lastRPLRewardInterval = null;
     protocol.lastNetworkNodeBalanceCheckPoint = null;
     protocol.networkNodeBalanceCheckpoints = new Array<string>(0);
+    protocol.stakersWithAnRETHBalance = BigInt.fromI32(0);
     return protocol;
   }
 

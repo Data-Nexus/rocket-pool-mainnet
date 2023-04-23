@@ -29,6 +29,9 @@ type RocketPoolProtocol @entity {
 
   # All node network balance checkpoints for the RocketPool protocol.
   networkNodeBalanceCheckpoints: [NetworkNodeBalanceCheckpoint!]!
+
+  # All addresses holding rETH
+  stakersWithAnRETHBalance: BigInt!
 }
 
 # An address that is/was associated with an rETH balance.

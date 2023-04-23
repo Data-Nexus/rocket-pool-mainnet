@@ -112,7 +112,7 @@ export function handleBalancesUpdated(event: BalancesUpdated): void {
       rocketETHDailySnapshot.totalStakerETHRewards = checkpoint.totalStakerETHRewards; //BigInt!
       rocketETHDailySnapshot.totalStakersWithETHRewards = checkpoint.totalStakersWithETHRewards; //BigInt!
       rocketETHDailySnapshot.averageStakerETHRewards = checkpoint.averageStakerETHRewards; //BigInt!
-      rocketETHDailySnapshot.stakersWithAnRETHBalance = checkpoint.stakersWithAnRETHBalance; //BigInt!
+      rocketETHDailySnapshot.stakersWithAnRETHBalance = protocol.stakersWithAnRETHBalance;
       rocketETHDailySnapshot.totalRETHSupply = checkpoint.totalRETHSupply; //BigInt!
       rocketETHDailySnapshot.rETHExchangeRate = checkpoint.rETHExchangeRate; //BigInt!
       rocketETHDailySnapshot.block = checkpoint.block;
@@ -128,7 +128,7 @@ export function handleBalancesUpdated(event: BalancesUpdated): void {
       rocketETHDailySnapshot.totalStakerETHRewards = checkpoint.totalStakerETHRewards;
       rocketETHDailySnapshot.totalStakersWithETHRewards = checkpoint.totalStakersWithETHRewards;
       rocketETHDailySnapshot.averageStakerETHRewards = checkpoint.averageStakerETHRewards;
-      rocketETHDailySnapshot.stakersWithAnRETHBalance = checkpoint.stakersWithAnRETHBalance;
+      rocketETHDailySnapshot.stakersWithAnRETHBalance = protocol.stakersWithAnRETHBalance;
       rocketETHDailySnapshot.totalRETHSupply = checkpoint.totalRETHSupply;
       rocketETHDailySnapshot.rETHExchangeRate = checkpoint.rETHExchangeRate;
       rocketETHDailySnapshot.block = checkpoint.block;
