@@ -144,12 +144,6 @@ type NetworkStakerBalanceCheckpoint @entity {
   # Staker ETH (in WEI) in RocketPool at this checkpoint.
   stakerETHInProtocol: BigInt!
 
-  # Staker ETH rewards (+/-) (in WEI) for all staker balance checkpoints up to this checkpoint.
-  totalStakerETHRewards: BigInt!
-
-  # Stakers that have had ETH rewards (+/-) up to this checkpoint.
-  totalStakersWithETHRewards: BigInt!
-
   # Average staker ETH rewards (+/-) (in WEI) up to this checkpoint.
   averageStakerETHRewards: BigInt!
 

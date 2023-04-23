@@ -95,9 +95,7 @@ class RocketPoolEntityFactory {
     networkBalance.rETHExchangeRate = rEthExchangeRate;
     networkBalance.block = event.block.number;
     networkBalance.blockTime = event.block.timestamp;
-    networkBalance.totalStakersWithETHRewards = BigInt.fromI32(0);
     networkBalance.stakersWithAnRETHBalance = BigInt.fromI32(0);
-    networkBalance.totalStakerETHRewards = BigInt.fromI32(0);
 
     return networkBalance;
   }

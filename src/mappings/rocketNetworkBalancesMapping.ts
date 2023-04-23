@@ -57,15 +57,11 @@ export function handleBalancesUpdated(event: BalancesUpdated): void {
 
   // Retrieve previous checkpoint.
   let previousCheckpointId = protocol.lastNetworkStakerBalanceCheckPoint;
-  let previousTotalStakerETHRewards = BigInt.fromI32(0);
-  let previousTotalStakersWithETHRewards = BigInt.fromI32(0);
   let previousRETHExchangeRate = BigInt.fromI32(1);
   let previousCheckpoint: NetworkStakerBalanceCheckpoint | null = null;
   if (previousCheckpointId) {
     previousCheckpoint = NetworkStakerBalanceCheckpoint.load(previousCheckpointId);
     if (previousCheckpoint) {
-      previousTotalStakerETHRewards = previousCheckpoint.totalStakerETHRewards;
-      previousTotalStakersWithETHRewards = previousCheckpoint.totalStakersWithETHRewards;
       previousRETHExchangeRate = previousCheckpoint.rETHExchangeRate;
       previousCheckpoint.nextCheckpointId = checkpoint.id;
     }
@@ -109,8 +105,6 @@ export function handleBalancesUpdated(event: BalancesUpdated): void {
       rocketETHDailySnapshot.stakerETHWaitingInDepositPool = checkpoint.stakerETHWaitingInDepositPool; //BigInt!
       rocketETHDailySnapshot.stakerETHInRocketETHContract = checkpoint.stakerETHInRocketETHContract; //BigInt!
       rocketETHDailySnapshot.stakerETHInProtocol = checkpoint.stakerETHInProtocol; //BigInt!
-      rocketETHDailySnapshot.totalStakerETHRewards = checkpoint.totalStakerETHRewards; //BigInt!
-      rocketETHDailySnapshot.totalStakersWithETHRewards = checkpoint.totalStakersWithETHRewards; //BigInt!
       rocketETHDailySnapshot.averageStakerETHRewards = checkpoint.averageStakerETHRewards; //BigInt!
       rocketETHDailySnapshot.stakersWithAnRETHBalance = protocol.stakersWithAnRETHBalance;
       rocketETHDailySnapshot.totalRETHSupply = checkpoint.totalRETHSupply; //BigInt!
@@ -125,8 +119,6 @@ export function handleBalancesUpdated(event: BalancesUpdated): void {
       rocketETHDailySnapshot.stakerETHWaitingInDepositPool = checkpoint.stakerETHWaitingInDepositPool;
       rocketETHDailySnapshot.stakerETHInRocketETHContract = checkpoint.stakerETHInRocketETHContract;
       rocketETHDailySnapshot.stakerETHInProtocol = checkpoint.stakerETHInProtocol;
-      rocketETHDailySnapshot.totalStakerETHRewards = checkpoint.totalStakerETHRewards;
-      rocketETHDailySnapshot.totalStakersWithETHRewards = checkpoint.totalStakersWithETHRewards;
       rocketETHDailySnapshot.averageStakerETHRewards = checkpoint.averageStakerETHRewards;
       rocketETHDailySnapshot.stakersWithAnRETHBalance = protocol.stakersWithAnRETHBalance;
       rocketETHDailySnapshot.totalRETHSupply = checkpoint.totalRETHSupply;
@@ -136,23 +128,6 @@ export function handleBalancesUpdated(event: BalancesUpdated): void {
 
       rocketETHDailySnapshot.save();
     }
-  }
-
-  // If for some reason the running summary totals up to this checkpoint was 0, then we try to set it based on the previous checkpoint.
-  if (checkpoint.totalStakerETHRewards == BigInt.fromI32(0)) {
-    checkpoint.totalStakerETHRewards = previousTotalStakerETHRewards;
-  }
-  if (checkpoint.totalStakersWithETHRewards == BigInt.fromI32(0)) {
-    checkpoint.totalStakersWithETHRewards = previousTotalStakersWithETHRewards;
-  }
-
-  // Calculate average staker reward up to this checkpoint.
-  if (
-    checkpoint.totalStakerETHRewards != BigInt.fromI32(0) && checkpoint.totalStakersWithETHRewards
-      ? 0
-      : checkpoint.totalStakersWithETHRewards >= BigInt.fromI32(1)
-  ) {
-    checkpoint.averageStakerETHRewards = checkpoint.totalStakerETHRewards.div(checkpoint.totalStakersWithETHRewards);
   }
 
   // Update the link so the protocol points to the last network staker balance checkpoint.

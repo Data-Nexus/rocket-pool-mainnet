@@ -360,8 +360,8 @@ dataSources:
         - name: rocketNodeStaking
           file: ./abis/rocketNodeStaking.json
       eventHandlers:
-        - event: PricesUpdated(uint256,uint256,uint256,uint256)
-          handler: handlePricesUpdated
+        - event: PricesUpdated(uint256,uint256,uint256)
+          handler: handlePricesUpdatedAtlas
       file: ./src/mappings/rocketNetworkPricesMapping.ts
   - kind: ethereum/contract
     name: rocketMinipoolManagerV1
