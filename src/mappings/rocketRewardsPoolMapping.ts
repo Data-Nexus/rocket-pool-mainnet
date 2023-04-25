@@ -208,6 +208,8 @@ export function handleRewardSnapshot(event: RewardSnapshot): void {
     _RPLRewardSubmitted.nodeRPL = event.params.submission.nodeRPL;
     _RPLRewardSubmitted.nodeETH = event.params.submission.nodeETH;
     _RPLRewardSubmitted.userETH = event.params.submission.userETH;
+    _RPLRewardSubmitted.block = event.block.number;
+    _RPLRewardSubmitted.blockTime = event.block.timestamp;
 
     _RPLRewardSubmitted.save();
   }
