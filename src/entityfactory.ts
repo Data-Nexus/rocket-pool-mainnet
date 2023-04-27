@@ -1,11 +1,10 @@
-import { ethereum, BigInt } from "@graphprotocol/graph-ts";
+import {ethereum, BigInt, BigDecimal} from "@graphprotocol/graph-ts";
 import {
   Staker,
   Node,
   RocketETHTransaction,
   NetworkStakerBalanceCheckpoint,
   RocketPoolProtocol,
-  StakerBalanceCheckpoint,
   NetworkNodeTimezone,
   NodeRPLStakeTransaction,
   RPLRewardInterval,
@@ -14,8 +13,8 @@ import {
   NodeBalanceCheckpoint,
   Minipool,
 } from "../generated/schema";
-import { BalancesUpdated } from "../generated/rocketNetworkBalances/rocketNetworkBalances";
-import { ROCKETPOOL_PROTOCOL_ROOT_ID } from "./constants/generalconstants";
+import {BalancesUpdated} from "../generated/rocketNetworkBalances/rocketNetworkBalances";
+import {ROCKETPOOL_PROTOCOL_ROOT_ID} from "./constants/generalconstants";
 
 class RocketPoolEntityFactory {
   /**
@@ -32,6 +31,7 @@ class RocketPoolEntityFactory {
     protocol.lastRPLRewardInterval = null;
     protocol.lastNetworkNodeBalanceCheckPoint = null;
     protocol.networkNodeBalanceCheckpoints = new Array<string>(0);
+    protocol.stakersWithAnRETHBalance = BigInt.fromI32(0);
     return protocol;
   }
 
@@ -95,9 +95,7 @@ class RocketPoolEntityFactory {
     networkBalance.rETHExchangeRate = rEthExchangeRate;
     networkBalance.block = event.block.number;
     networkBalance.blockTime = event.block.timestamp;
-    networkBalance.totalStakersWithETHRewards = BigInt.fromI32(0);
     networkBalance.stakersWithAnRETHBalance = BigInt.fromI32(0);
-    networkBalance.totalStakerETHRewards = BigInt.fromI32(0);
 
     return networkBalance;
   }
@@ -110,48 +108,12 @@ class RocketPoolEntityFactory {
 
     let staker = new Staker(id);
     staker.rETHBalance = BigInt.fromI32(0);
-    staker.ethBalance = BigInt.fromI32(0);
-    staker.totalETHRewards = BigInt.fromI32(0);
-    staker.lastBalanceCheckpoint = null;
-    staker.hasAccruedETHRewardsDuringLifecycle = false;
+    staker.avgEntry = BigDecimal.fromString("0");
+    staker.AvgEntryTime = BigInt.fromI32(0);
     staker.block = blockNumber;
     staker.blockTime = blockTime;
 
     return staker;
-  }
-
-  /**
-   * Attempts to create a new staker balance checkpoint for the given values.
-   */
-  public createStakerBalanceCheckpoint(
-    id: string,
-    staker: Staker | null,
-    networkStakerBalanceCheckpoint: NetworkStakerBalanceCheckpoint | null,
-    ethBalance: BigInt,
-    rEthBalance: BigInt,
-    totalETHRewards: BigInt,
-    blockNumber: BigInt,
-    blockTime: BigInt
-  ): StakerBalanceCheckpoint | null {
-    if (
-      id == null ||
-      staker === null ||
-      staker.id == null ||
-      networkStakerBalanceCheckpoint === null ||
-      networkStakerBalanceCheckpoint.id == null
-    )
-      return null;
-
-    let stakerBalanceCheckpoint = new StakerBalanceCheckpoint(id);
-    stakerBalanceCheckpoint.stakerId = staker.id;
-    stakerBalanceCheckpoint.networkStakerBalanceCheckpointId = networkStakerBalanceCheckpoint.id;
-    stakerBalanceCheckpoint.ethBalance = ethBalance;
-    stakerBalanceCheckpoint.rETHBalance = rEthBalance;
-    stakerBalanceCheckpoint.totalETHRewards = totalETHRewards;
-    stakerBalanceCheckpoint.block = blockNumber;
-    stakerBalanceCheckpoint.blockTime = blockTime;
-
-    return stakerBalanceCheckpoint;
   }
 
   /**
@@ -192,7 +154,7 @@ class RocketPoolEntityFactory {
     node.totalFinalizedMinipools = BigInt.fromI32(0);
     node.averageFeeForActiveMinipools = BigInt.fromI32(0);
     node.lastNodeBalanceCheckpoint = null;
-    node.minipools = new Array<string>(0);
+    node.smoothingPool = false;
     node.block = blockNumber;
     node.blockTime = blockTime;
     return node;

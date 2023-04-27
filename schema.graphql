@@ -29,6 +29,9 @@ type RocketPoolProtocol @entity {
 
   # All node network balance checkpoints for the RocketPool protocol.
   networkNodeBalanceCheckpoints: [NetworkNodeBalanceCheckpoint!]!
+
+  # All addresses holding rETH
+  stakersWithAnRETHBalance: BigInt!
 }
 
 # An address that is/was associated with an rETH balance.
@@ -39,17 +42,11 @@ type Staker @entity {
   # Current rETH balance in WEI.
   rETHBalance: BigInt!
 
-  # Current ETH balance in WEI.
-  ethBalance: BigInt!
+  " Stakers entry conversion rate as a weighted average "
+  avgEntry: BigDecimal
 
-  # Total ETH rewards (in WEI) accrued during the lifecycle of the staker.
-  totalETHRewards: BigInt!
-
-  # Indicates if this staker has accrued ETH rewards at some point in time during its lifetime.
-  hasAccruedETHRewardsDuringLifecycle: Boolean!
-
-  # The last known staker balance checkpoint for this staker.
-  lastBalanceCheckpoint: StakerBalanceCheckpoint
+  " Weighted time entry "
+  AvgEntryTime: BigInt
 
   # Block number at which this staker first received rETH.
   block: BigInt!
@@ -82,6 +79,42 @@ type RocketETHTransaction @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+#
+type RocketETHDailySnapshot @entity {
+  # day number (timestamp / 86400)
+  id: ID!
+
+  # Staker ETH (in WEI) balance (initial deposit + (ETH network rewards - average node fee)) on the beacon chain at this checkpoint.
+  stakerETHActivelyStaking: BigInt!
+
+  # Staker ETH (in WEI) waiting in the deposit pool at this checkpoint.
+  stakerETHWaitingInDepositPool: BigInt!
+
+  # Staker ETH (in WEI) in the RocketETH contract at this checkpoint.
+  stakerETHInRocketETHContract: BigInt!
+
+  # Staker ETH (in WEI) in RocketPool at this checkpoint.
+  stakerETHInProtocol: BigInt!
+
+  # Average staker ETH rewards (+/-) (in WEI) up to this checkpoint.
+  averageStakerETHRewards: BigInt!
+
+  # Total unique stakers that have an rETH balance (in WEI) greater than 0 at this checkpoint.
+  stakersWithAnRETHBalance: BigInt!
+
+  # Total rETH supply at this checkpoint.
+  totalRETHSupply: BigInt!
+
+  # Exchange rate of ETH:rETH (in WEI) at this checkpoint.
+  rETHExchangeRate: BigInt!
+
+  # Block Number of this checkpoint.
+  block: BigInt!
+
+  # Block Timestamp of this checkpoint.
+  blockTime: BigInt!
+}
+
 # Summarizes staker related balances at a specific block and timestamp.
 type NetworkStakerBalanceCheckpoint @entity {
   # Composite key based on transaction hash of the triggered event and its log index.
@@ -105,12 +138,6 @@ type NetworkStakerBalanceCheckpoint @entity {
   # Staker ETH (in WEI) in RocketPool at this checkpoint.
   stakerETHInProtocol: BigInt!
 
-  # Staker ETH rewards (+/-) (in WEI) for all staker balance checkpoints up to this checkpoint.
-  totalStakerETHRewards: BigInt!
-
-  # Stakers that have had ETH rewards (+/-) up to this checkpoint.
-  totalStakersWithETHRewards: BigInt!
-
   # Average staker ETH rewards (+/-) (in WEI) up to this checkpoint.
   averageStakerETHRewards: BigInt!
 
@@ -122,33 +149,6 @@ type NetworkStakerBalanceCheckpoint @entity {
 
   # Exchange rate of ETH:rETH (in WEI) at this checkpoint.
   rETHExchangeRate: BigInt!
-
-  # Block Number of this checkpoint.
-  block: BigInt!
-
-  # Block Timestamp of this checkpoint.
-  blockTime: BigInt!
-}
-
-# Summarizes balances for a staker at a specific block and timestamp.
-type StakerBalanceCheckpoint @entity {
-  # Composite key consisting of the NetworkBalanceCheckpoint ID and the Staker ID.
-  id: ID!
-
-  # Staker that is associated with this balance checkpoint.
-  stakerId: String!
-
-  # The network staker balance checkpoint that triggered the creation of this reward.
-  networkStakerBalanceCheckpointId: String!
-
-  # ETH balance (in WEI) of the staker of this checkpoint.
-  ethBalance: BigInt!
-
-  # rETH balance (in WEI) of the staker of this checkpoint.
-  rETHBalance: BigInt!
-
-  # Total ETH rewards (in WEI) up to this checkpoint.
-  totalETHRewards: BigInt!
 
   # Block Number of this checkpoint.
   block: BigInt!
@@ -229,7 +229,13 @@ type Node @entity {
   lastNodeBalanceCheckpoint: NodeBalanceCheckpoint
 
   # Associated minipools for this node.
-  minipools: [Minipool!]!
+  minipoolIds: [String!]
+
+  # Associated minipools for this node.
+  minipools: [Minipool!]! @derivedFrom(field: "node")
+
+  # Is the node registerd with the smoothing pool
+  smoothingPool: Boolean!
 
   # Block number at which this node was first registered with the protocol.
   block: BigInt!
@@ -336,6 +342,30 @@ type RPLRewardInterval @entity {
 
   # Indicates how long the interval actually lasted.
   intervalDurationActual: BigInt
+
+  # On what block number was this interval created.
+  block: BigInt!
+
+  # At what time was this interval created.
+  blockTime: BigInt!
+}
+
+# Represents an reward interval during which RPL can be claimed by different types of claimers.
+type RPLRewardSubmitted @entity {
+  # Reward Index
+  id: ID!
+
+  rewardIndex: BigInt!
+  executionBlock: BigInt!
+  consensusBlock: BigInt!
+  merkleRoot: Bytes!
+  merkleTreeCID: String!
+  intervalsPassed: BigInt!
+  treasuryRPL: BigInt!
+  trustedNodeRPL: [BigInt!]!
+  nodeRPL: [BigInt!]!
+  nodeETH: [BigInt!]!
+  userETH: BigInt!
 
   # On what block number was this interval created.
   block: BigInt!
