@@ -6,6 +6,8 @@ V 2.0.0
 
 This subgraph is not officially owned by the Rocket Pool team (yet). This is a community contribution by Data Nexus & VGR with the aims to transfer ownership to the Rocket Pool dev team.
 
+Version 2 includes Redstone and Atlas contracts.
+
 **[Rocket Pool Subgraph](https://thegraph.com/explorer/subgraphs/S9ihna8D733WTEShJ1KctSTCvY1VJ7gdVwhUujq4Ejo?view=Overview&chain=mainnet)**
 
 **Graph Query Documentation** https://thegraph.com/docs/en/developer/graphql-api/
@@ -16,13 +18,24 @@ This subgraph is not officially owned by the Rocket Pool team (yet). This is a c
 
 **Graphiql Query Builder:** https://graphiql-online.com/
 
-### TODO
+### Pull the rETH 30day APY:
 
-- Smoothing Pool Interactions (done)
-- New RPL functionality (such as stakeRPLFor() on the RocketNodeStaking contract)
-- The prior version assumed only 1 BalancesUpdated() would be emitted each day which has lead to missing checkpoints.
-- Initial methodology for tracking individuals profits has a cumbersome indexing loop that can be optimized.
-- Subgraph should be templated so it can be deployed on the other networks that rETH and RPL are on.
+NOTE: Calculation is the number of seconds in a year divided by the difference in seconds of the two time period, then multiply by the percentage difference between the two periods. With this method you can easily change 30day to 7day/1year etc. by changing the `skip: 30` in the second entity. 31536000 / (yesterdayRETH.blockTime - thirtyDayRETH.blockTime) \* ((yesterdayRETH.rETHExchangeRate - thirtyDayRETH.rETHExchangeRate) / thirtyDayRETH.rETHExchangeRate)
+
+```graphql
+query rETHAPY {
+  yesterdayRETH: rocketETHDailySnapshots(first: 1, skip: 1, orderBy: blockTime, orderDirection: desc) {
+    rETHExchangeRate
+    blockTime
+    block
+  }
+  thirtyDayRETH: rocketETHDailySnapshots(first: 1, skip: 30, orderBy: blockTime, orderDirection: desc) {
+    rETHExchangeRate
+    blockTime
+    block
+  }
+}
+```
 
 ### Pull the rETH Staker Information for an individual address:
 
@@ -42,13 +55,13 @@ query StakerOverview {
 ### Pull the daily eth rewards for a staker:
 
 ```graphql
-query StakerOverview {
-  stakerBalanceCheckpoints(where: {stakerId: "0x..."}) {
+query StakerOverTime {
+  staker(id: "0x...") {
+    id
     rETHBalance
-    totalETHRewards
-    block
-    blockTime
-    ethBalance
+  }
+  rocketETHDailySnapshots(first: 7) {
+    rETHExchangeRate
   }
 }
 ```
