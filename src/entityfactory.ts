@@ -108,7 +108,7 @@ class RocketPoolEntityFactory {
 
     let staker = new Staker(id);
     staker.rETHBalance = BigInt.fromI32(0);
-    staker.avgEntry = BigDecimal.fromString("0");
+    staker.avgEntry = BigInt.fromI32(0);
     staker.AvgEntryTime = BigInt.fromI32(0);
     staker.block = blockNumber;
     staker.blockTime = blockTime;

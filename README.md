@@ -52,6 +52,23 @@ query StakerOverview {
 }
 ```
 
+### Get the users underlying ETH rewards since staking
+
+NOTES: id's should be all lowercase
+
+```graphql
+{
+  staker(id: "0x0000000000000000000000000000000000000000") {
+    avgEntry
+    AvgEntryTime
+    rETHBalance
+  }
+  currentExchange: rocketETHDailySnapshots(first: 1, orderBy: blockTime, orderDirection: desc) {
+    rETHExchangeRate
+  }
+}
+```
+
 ### Pull the daily eth rewards for a staker:
 
 ```graphql
