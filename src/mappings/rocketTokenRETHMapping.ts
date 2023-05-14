@@ -86,6 +86,25 @@ function saveTransaction(event: ethereum.Event, from: Staker, to: Staker, rETHAm
   }
   protocol.activeStakers = protocolActiveStakers;
 
+  if (exchangeRate.gt(BigInt.fromI32(0)) && to.rETHBalance.gt(BigInt.fromI32(0))) {
+    // Update Recipient Avg rETH entry
+    let priorETH = to.rETHBalance.minus(rETHAmount).times(to.avgEntry);
+    let inputETH = rETHAmount.times(exchangeRate);
+    let newAvg = priorETH.plus(inputETH).div(to.rETHBalance);
+    to.avgEntry = newAvg;
+
+    // Update Recipient Avg rETH entry time using same weights as above
+    let priorTime = to.AvgEntryTime.times(priorETH);
+    let inputTime = event.block.timestamp.times(inputETH);
+    to.AvgEntryTime = priorTime.plus(inputTime).div(to.rETHBalance.times(exchangeRate));
+  }
+
+  // zero out avg upon total exit
+  if (from.rETHBalance.equals(BigInt.fromI32(0))) {
+    from.avgEntry = BigInt.fromI32(0);
+    from.AvgEntryTime = BigInt.fromI32(0);
+  }
+
   // Index all state.
   from.save();
   to.save();

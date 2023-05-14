@@ -43,10 +43,10 @@ type Staker @entity {
   rETHBalance: BigInt!
 
   " Stakers entry conversion rate as a weighted average "
-  avgEntry: BigDecimal
+  avgEntry: BigInt!
 
   " Weighted time entry "
-  AvgEntryTime: BigInt
+  AvgEntryTime: BigInt!
 
   # Block number at which this staker first received rETH.
   block: BigInt!
