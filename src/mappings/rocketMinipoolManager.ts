@@ -77,6 +77,8 @@ export function handleMinipoolDestroyed(event: MinipoolDestroyed): void {
   let node = Node.load(event.params.node.toHexString());
   if (node === null) return;
 
+  let minipoolIds = node.minipoolIds;
+
   // Update the minipool so it will contain its destroyed state.
   minipool.destroyedBlockTime = event.block.timestamp;
 
@@ -87,7 +89,7 @@ export function handleMinipoolDestroyed(event: MinipoolDestroyed): void {
   setEffectiveRPLStaked(<Node>node);
 
   // A destroyed minipool changes the average minipool fee for a node.
-  node.averageFeeForActiveMinipools = getAverageFeeForActiveMinipools(node.minipools);
+  if (minipoolIds) node.averageFeeForActiveMinipools = getAverageFeeForActiveMinipools(minipoolIds);
 
   // Index change to the associated node.
   node.save();
@@ -109,6 +111,8 @@ export function handleIncrementNodeFinalisedMinipoolCount(call: IncrementNodeFin
   let node = Node.load(minipool.node);
   if (node === null) return;
 
+  let minipoolIds = node.minipoolIds;
+
   // Update the finalized block time for this minipool and the number of total finalized minipools for the node.
   minipool.finalizedBlockTime = call.block.timestamp;
 
@@ -126,7 +130,8 @@ export function handleIncrementNodeFinalisedMinipoolCount(call: IncrementNodeFin
   setEffectiveRPLStaked(<Node>node);
 
   // A finalized minipool changes the average minipool fee for a node.
-  node.averageFeeForActiveMinipools = getAverageFeeForActiveMinipools(node.minipools);
+
+  if (minipoolIds) node.averageFeeForActiveMinipools = getAverageFeeForActiveMinipools(minipoolIds);
 
   // Index the associated node.
   node.save();

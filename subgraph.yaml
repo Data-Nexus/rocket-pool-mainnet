@@ -1,4 +1,9 @@
 specVersion: 0.0.5
+# features:
+#   - grafting
+# graft:
+#   base: QmP57jQMsHcBgX45JcwttLnffDCuMEfUUzpqZyF9njCA98
+#   block: 17002371
 schema:
   file: ./schema.graphql
 dataSources:
@@ -123,7 +128,7 @@ dataSources:
     name: rocketNodeManagerV3
     network: mainnet
     source:
-      address: "0x6d010C43d4e96D74C422f2e27370AF48711B49bF"
+      address: "0x89F478E6Cc24f052103628f36598D4C14Da3D287"
       abi: rocketNodeManager
       startBlock: 17002372
     mapping:
